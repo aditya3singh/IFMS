@@ -1,0 +1,109 @@
+/* Global tokens (Material M3 theme lives in material-theme.scss) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --md-sys-color-primary: #001e40;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #003365;
+  --md-sys-color-on-primary-container: #669deb;
+  --md-sys-color-primary-fixed: #d5e3ff;
+  --md-sys-color-on-primary-fixed: #001c3b;
+  --md-sys-color-primary-fixed-dim: #a6c8ff;
+  --md-sys-color-on-primary-fixed-variant: #004787;
+  --md-sys-color-secondary: #a04100;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #fc7728;
+  --md-sys-color-on-secondary-container: #5d2300;
+  --md-sys-color-secondary-fixed: #ffdbcb;
+  --md-sys-color-on-secondary-fixed: #341000;
+  --md-sys-color-secondary-fixed-dim: #ffb693;
+  --md-sys-color-on-secondary-fixed-variant: #7a3000;
+  --md-sys-color-tertiary: #00231e;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: #003b33;
+  --md-sys-color-on-tertiary-container: #46ac9c;
+  --md-sys-color-tertiary-fixed: #91f4e2;
+  --md-sys-color-on-tertiary-fixed: #00201b;
+  --md-sys-color-tertiary-fixed-dim: #74d8c6;
+  --md-sys-color-on-tertiary-fixed-variant: #005047;
+  --md-sys-color-error: #ba1a1a;
+  --md-sys-color-on-error: #ffffff;
+  --md-sys-color-error-container: #ffdad6;
+  --md-sys-color-on-error-container: #93000a;
+  --md-sys-color-background: #f9f9fd;
+  --md-sys-color-on-background: #191c1e;
+  --md-sys-color-surface: #f9f9fd;
+  --md-sys-color-on-surface: #191c1e;
+  --md-sys-color-surface-dim: #d9dadd;
+  --md-sys-color-surface-bright: #f9f9fd;
+  --md-sys-color-surface-container-lowest: #ffffff;
+  --md-sys-color-surface-container-low: #f3f3f7;
+  --md-sys-color-surface-container: #edeef1;
+  --md-sys-color-surface-container-high: #e7e8eb;
+  --md-sys-color-surface-container-highest: #e2e2e6;
+  --md-sys-color-surface-variant: #e2e2e6;
+  --md-sys-color-on-surface-variant: #43474f;
+  --md-sys-color-outline: #737780;
+  --md-sys-color-outline-variant: #c3c6d1;
+  --md-sys-color-inverse-surface: #2e3133;
+  --md-sys-color-inverse-on-surface: #f0f0f4;
+  --md-sys-color-inverse-primary: #a6c8ff;
+  --md-sys-color-surface-tint: #1d5fa8;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Manrope', sans-serif;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
+.font-headline { font-family: 'Manrope', sans-serif; }
+.font-body     { font-family: 'Inter', sans-serif; }
+.font-label    { font-family: 'Inter', sans-serif; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f3f3f7; }
+::-webkit-scrollbar-thumb { background: #c3c6d1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #737780; }
+
+/* Bharat Kinetic gradient utilities */
+.tonal-valley    { background: linear-gradient(135deg, #001e40 0%, #003365 100%); }
+.kinetic-gradient{ background: linear-gradient(135deg, #001e40 0%, #003365 100%); }
+.fuel-gradient   { background: linear-gradient(135deg, #001e40 0%, #003365 100%); }
+
+.glass-header {
+  background: rgba(249, 249, 253, 0.8);
+  backdrop-filter: blur(20px);
+}
+
+/* Shimmer animations */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.shimmer, .kinetic-shimmer, .fuel-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
+}

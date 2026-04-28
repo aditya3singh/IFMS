@@ -1,0 +1,1443 @@
+<!-- Bharat Kinetic — Book Fuel (Customer) / Token Validation Portal (Dealer) -->
+<div class="flex min-h-screen bg-surface text-on-surface font-body">
+
+  <!-- ═══════════════════════════════════════════════════════ CUSTOMER VIEW ══ -->
+  <ng-container *ngIf="role === 'Customer'">
+
+    <!-- Sidenav -->
+    <aside class="h-screen w-64 hidden lg:flex flex-col bg-surface-container-low sticky top-0 p-4 z-10">
+      <div class="mb-8 px-4">
+        <h1 class="text-lg font-bold text-primary font-headline">Bharat Kinetic</h1>
+      </div>
+      <nav class="flex-1 space-y-1">
+        <a (click)="goBack()" class="cursor-pointer flex items-center text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg transition-all">
+          <span class="material-symbols-outlined mr-3">dashboard</span><span class="text-sm font-medium">Dashboard</span>
+        </a>
+        <a (click)="activeView='booking'" class="cursor-pointer flex items-center px-4 py-3 rounded-lg transition-all"
+           [class]="activeView==='booking' ? 'bg-white text-primary font-bold shadow-sm' : 'text-outline hover:bg-surface-container-high'">
+          <span class="material-symbols-outlined mr-3">local_gas_station</span><span class="text-sm">Fuel Booking</span>
+        </a>
+        <a (click)="navigate('/station-finder')" class="cursor-pointer flex items-center text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg transition-all">
+          <span class="material-symbols-outlined mr-3">map</span><span class="text-sm font-medium">Station Finder</span>
+        </a>
+        <a (click)="activeView='history'" class="cursor-pointer flex items-center px-4 py-3 rounded-lg transition-all"
+           [class]="activeView==='history' ? 'bg-white text-primary font-bold shadow-sm' : 'text-outline hover:bg-surface-container-high'">
+          <span class="material-symbols-outlined mr-3">history</span><span class="text-sm font-medium">Booking History</span>
+        </a>
+        <a (click)="openSupport('raise')" class="cursor-pointer flex items-center px-4 py-3 rounded-lg transition-all"
+           [class]="activeView==='support' ? 'bg-white text-primary font-bold shadow-sm' : 'text-outline hover:bg-surface-container-high'">
+          <span class="material-symbols-outlined mr-3">support_agent</span><span class="text-sm font-medium">Support</span>
+        </a>
+      </nav>
+      <div class="mt-auto pt-4 border-t border-outline-variant/20 space-y-1">
+        <a (click)="openSettings('profile')" class="cursor-pointer flex items-center px-4 py-3 rounded-lg transition-all text-sm"
+           [class]="activeView==='settings' ? 'bg-white text-primary font-bold shadow-sm' : 'text-outline hover:bg-surface-container-high'">
+          <span class="material-symbols-outlined mr-3">settings</span>Settings
+        </a>
+        <a (click)="goBack()" class="cursor-pointer flex items-center text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg transition-all text-sm">
+          <span class="material-symbols-outlined mr-3">arrow_back</span>Back
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main canvas -->
+    <main class="flex-1 flex flex-col min-h-screen relative overflow-x-hidden">
+
+      <!-- Top bar -->
+      <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center px-6 py-4 w-full shadow-sm">
+        <div class="flex items-center gap-3">
+          <button class="lg:hidden p-2" (click)="goBack()">
+            <span class="material-symbols-outlined">arrow_back</span>
+          </button>
+          <h2 class="text-xl font-black tracking-tighter text-primary font-headline uppercase">
+            {{ bookingResult ? 'Booking Confirmed' : activeView === 'history' ? 'Booking History' : activeView === 'support' ? 'Support' : activeView === 'settings' ? 'Settings' : 'Fuel Booking' }}
+          </h2>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="material-symbols-outlined text-outline cursor-pointer">notifications</span>
+          <span class="material-symbols-outlined text-outline cursor-pointer">account_circle</span>
+        </div>
+      </header>
+
+      <!-- Global messages -->
+      <div class="max-w-7xl mx-auto w-full px-4 md:px-8 pt-4" *ngIf="errorMessage || successMessage">
+        <div *ngIf="errorMessage" role="alert"
+          class="flex items-center gap-3 bg-error-container/30 border border-error/20 text-on-error-container rounded-lg px-4 py-3 mb-4 text-sm font-medium">
+          <span class="material-symbols-outlined text-error text-sm">error_outline</span>{{ errorMessage }}
+        </div>
+        <div *ngIf="successMessage" role="status"
+          class="flex items-center gap-3 bg-tertiary-fixed/20 border border-on-tertiary-container/20 text-on-tertiary-container rounded-lg px-4 py-3 mb-4 text-sm font-medium">
+          <span class="material-symbols-outlined text-sm">check_circle</span>{{ successMessage }}
+        </div>
+      </div>
+
+      <!-- ─────────────────────── BOOKING FORM (no result yet) ──────────────── -->
+      <ng-container *ngIf="!bookingResult && activeView === 'booking'">
+        <div class="p-4 md:p-8 lg:p-12 space-y-8 max-w-7xl mx-auto w-full">
+          <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+
+            <!-- Left: Form Steps -->
+            <div class="xl:col-span-7 space-y-8">
+              <div class="space-y-2">
+                <span class="text-secondary font-bold text-sm tracking-widest uppercase">Direct Refuel</span>
+                <h3 class="text-3xl md:text-4xl font-extrabold text-primary font-headline leading-tight">
+                  Secure your industrial<br/>fuel allocation.
+                </h3>
+              </div>
+
+              <!-- Step 1: Station -->
+              <section class="bg-surface-container-low rounded-xl p-6 md:p-8 space-y-6">
+                <div class="flex items-center gap-4">
+                  <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">1</div>
+                  <h4 class="text-lg font-bold font-headline">Select Fuel Station</h4>
+                </div>
+                <div>
+                  <div *ngIf="stationsLoading" class="flex items-center gap-3 text-sm text-on-surface-variant py-4">
+                    <div class="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>Loading stations…
+                  </div>
+                  <div *ngIf="stationsError && !stationsLoading" class="flex items-center gap-3 bg-error-container/30 rounded-lg p-4 text-sm text-on-error-container">
+                    <span class="material-symbols-outlined text-error text-sm">warning</span>
+                    {{ stationsError }}
+                    <button (click)="retryLoadStations()" class="ml-auto font-bold underline">Retry</button>
+                  </div>
+                  <div *ngIf="!stationsLoading" class="relative">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline">search</span>
+                    <select id="station-select" [(ngModel)]="selectedStationId" (ngModelChange)="onStationChange()"
+                      [disabled]="stationsLoading || stations.length === 0"
+                      class="w-full pl-12 pr-4 py-4 bg-surface-container-lowest rounded-lg border-0 ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary transition-all font-medium text-on-surface outline-none appearance-none">
+                      <option value="" disabled>{{ stations.length === 0 ? 'No stations available' : '— Select a station —' }}</option>
+                      <option *ngFor="let s of stations" [value]="s.id">{{ s.name }} — {{ s.city }}, {{ s.state }}</option>
+                    </select>
+                  </div>
+                  <div *ngIf="selectedStationName" class="mt-2 flex items-center gap-2 text-xs text-on-surface-variant">
+                    <span class="material-symbols-outlined text-sm">location_on</span>{{ selectedStationName }}
+                  </div>
+                  <div *ngIf="fuelPriceAreaNote && !fuelPriceError" class="mt-2 text-xs text-on-surface-variant">
+                    Area pricing for <strong>{{ fuelPriceAreaNote }}</strong>
+                  </div>
+                  <div *ngIf="fuelPriceError" class="mt-2 text-xs text-error">{{ fuelPriceError }}</div>
+                </div>
+              </section>
+
+              <!-- Step 2: Fuel Type -->
+              <section class="bg-surface-container-low rounded-xl p-6 md:p-8 space-y-6">
+                <div class="flex items-center gap-4">
+                  <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">2</div>
+                  <h4 class="text-lg font-bold font-headline">Select Fuel Type</h4>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <label *ngFor="let ft of ['Petrol','Diesel','CNG','EV']" class="cursor-pointer group">
+                    <input type="radio" [value]="ft" [(ngModel)]="fuelType" (ngModelChange)="onFuelTypeChange()" class="hidden peer" name="fuel_type"/>
+                    <div class="p-4 bg-surface-container-lowest rounded-lg ring-1 ring-outline-variant/30 peer-checked:ring-2 peer-checked:ring-secondary peer-checked:bg-secondary-fixed/30 transition-all flex flex-col items-center gap-2 text-center">
+                      <span class="material-symbols-outlined text-2xl text-outline group-hover:text-secondary transition-colors">
+                        {{ ft === 'Petrol' ? 'local_gas_station' : ft === 'Diesel' ? 'oil_barrel' : ft === 'CNG' ? 'eco' : 'ev_station' }}
+                      </span>
+                      <span class="font-bold text-primary text-sm">{{ ft }}</span>
+                      <span class="text-xs text-outline" *ngIf="pricePerLitre > 0 && fuelType === ft">
+                        ₹{{ pricePerLitre | number:'1.2-2' }}/{{ priceUnitLabel }}
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              </section>
+
+              <!-- Step 3: Quantity -->
+              <section class="bg-surface-container-low rounded-xl p-6 md:p-8 space-y-6">
+                <div class="flex items-center gap-4">
+                  <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">3</div>
+                  <h4 class="text-lg font-bold font-headline">Enter Quantity</h4>
+                </div>
+                <div class="flex flex-col md:flex-row gap-6">
+                  <div class="flex-1 space-y-2">
+                    <label class="block text-sm font-semibold text-on-surface-variant">
+                      Volume ({{ fuelType === 'CNG' ? 'KG' : fuelType === 'EV' ? 'kWh' : 'Litres' }})
+                    </label>
+                    <input id="quantity-input" type="number" [(ngModel)]="quantity" (ngModelChange)="calculateTotal()" min="1"
+                      class="w-full px-4 py-4 bg-surface-container-lowest rounded-lg border-0 ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary font-bold text-xl outline-none transition-all"
+                      placeholder="0.00"/>
+                  </div>
+                  <div class="flex items-center justify-center pt-6">
+                    <span class="material-symbols-outlined text-outline">sync_alt</span>
+                  </div>
+                  <div class="flex-1 space-y-2">
+                    <label class="block text-sm font-semibold text-on-surface-variant">Amount (₹)</label>
+                    <input id="price-input" type="number" [value]="totalAmount" readonly
+                      class="w-full px-4 py-4 bg-surface-container-lowest rounded-lg border-0 ring-1 ring-outline-variant/30 font-bold text-xl outline-none bg-surface-container-low cursor-not-allowed"
+                      placeholder="0.00"/>
+                  </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <button type="button" (click)="quantity = 40; calculateTotal()" class="px-4 py-2 bg-white rounded-full text-xs font-bold border border-outline-variant/30 hover:border-secondary transition-colors">FULL TANK</button>
+                  <button type="button" (click)="quantity = Math.round(500 / (pricePerLitre || 1)); calculateTotal()" class="px-4 py-2 bg-white rounded-full text-xs font-bold border border-outline-variant/30 hover:border-secondary transition-colors">₹500</button>
+                  <button type="button" (click)="quantity = Math.round(1000 / (pricePerLitre || 1)); calculateTotal()" class="px-4 py-2 bg-white rounded-full text-xs font-bold border border-outline-variant/30 hover:border-secondary transition-colors">₹1,000</button>
+                  <button type="button" (click)="quantity = Math.round(2000 / (pricePerLitre || 1)); calculateTotal()" class="px-4 py-2 bg-white rounded-full text-xs font-bold border border-outline-variant/30 hover:border-secondary transition-colors">₹2,000</button>
+                </div>
+              </section>
+
+              <!-- Step 4: KYC Identity Verification -->
+              <section class="bg-surface-container-low rounded-xl p-6 md:p-8 space-y-6">
+                <div class="flex items-center gap-4">
+                  <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">4</div>
+                  <h4 class="text-lg font-bold font-headline">Identity Verification</h4>
+                  <span *ngIf="kycVerified" class="ml-auto flex items-center gap-1 text-on-tertiary-container text-xs font-bold bg-tertiary/10 px-3 py-1 rounded-full">
+                    <span class="material-symbols-outlined text-sm">verified</span>Verified
+                  </span>
+                </div>
+                <div class="flex gap-3">
+                  <label class="cursor-pointer flex-1">
+                    <input type="radio" name="kycDoc" value="Pan" [(ngModel)]="kycDocumentType" (ngModelChange)="onKycDocumentTypeChange()" class="hidden peer"/>
+                    <div class="p-3 bg-surface-container-lowest rounded-lg ring-1 ring-outline-variant/30 peer-checked:ring-2 peer-checked:ring-secondary peer-checked:bg-secondary-fixed/20 text-center text-sm font-bold transition-all">PAN Card</div>
+                  </label>
+                  <label class="cursor-pointer flex-1">
+                    <input type="radio" name="kycDoc" value="Aadhaar" [(ngModel)]="kycDocumentType" (ngModelChange)="onKycDocumentTypeChange()" class="hidden peer"/>
+                    <div class="p-3 bg-surface-container-lowest rounded-lg ring-1 ring-outline-variant/30 peer-checked:ring-2 peer-checked:ring-secondary peer-checked:bg-secondary-fixed/20 text-center text-sm font-bold transition-all">Aadhaar</div>
+                  </label>
+                </div>
+                <div *ngIf="kycDocumentType === 'Pan'">
+                  <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">PAN Number</label>
+                  <input type="text" [(ngModel)]="panNumber" (ngModelChange)="onKycFieldsChange()" maxlength="14" autocomplete="off" placeholder="ABCDE1234F"
+                    class="w-full px-4 py-4 bg-surface-container-lowest rounded-lg border-0 ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary font-bold tracking-widest uppercase outline-none transition-all"/>
+                  <p class="mt-2 text-xs text-outline">5 letters · 4 digits · 1 letter (spaces OK)</p>
+                </div>
+                <div *ngIf="kycDocumentType === 'Aadhaar'">
+                  <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Aadhaar Number</label>
+                  <input type="text" [(ngModel)]="aadhaarNumber" (ngModelChange)="onKycFieldsChange()" maxlength="14" autocomplete="off" placeholder="12 digits (spaces OK)"
+                    class="w-full px-4 py-4 bg-surface-container-lowest rounded-lg border-0 ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary font-bold tracking-widest outline-none transition-all"/>
+                </div>
+                <div *ngIf="kycError" role="alert" class="text-sm text-error flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">error</span>{{ kycError }}
+                </div>
+                <button type="button" (click)="verifyIdentity()" [disabled]="kycVerifying || !canSubmitKyc() || kycVerified"
+                  class="flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-bold text-sm transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                  [class]="kycVerified ? 'bg-tertiary/10 text-on-tertiary-container' : 'tonal-valley text-white shadow-md'">
+                  <span *ngIf="kycVerifying" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                  <span class="material-symbols-outlined text-sm" *ngIf="kycVerified">check_circle</span>
+                  {{ kycVerified ? 'Identity Verified' : kycVerifying ? 'Verifying…' : 'Verify Identity' }}
+                </button>
+              </section>
+
+              <!-- Step 5: Contact Details for Notification -->
+              <section class="bg-surface-container-low rounded-xl p-6 md:p-8 space-y-6">
+                <div class="flex items-center gap-4">
+                  <div class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm">5</div>
+                  <h4 class="text-lg font-bold font-headline">Notification Details</h4>
+                  <span class="ml-auto text-xs text-outline font-medium">Booking confirmation will be sent here</span>
+                </div>
+
+                <!-- Name -->
+                <div class="space-y-2">
+                  <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+                    Full Name
+                  </label>
+                  <div class="relative">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-sm">person</span>
+                    <input type="text" [(ngModel)]="contactName" placeholder="Your full name"
+                      class="w-full pl-11 pr-4 py-4 bg-surface-container-lowest rounded-lg border-0 ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary font-medium outline-none transition-all"/>
+                  </div>
+                </div>
+
+                <!-- Mobile Number -->
+                <div class="space-y-2">
+                  <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+                    Mobile Number <span class="text-error">*</span>
+                  </label>
+                  <div class="relative">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-sm">smartphone</span>
+                    <input type="tel" [(ngModel)]="contactPhone" placeholder="+91 98765 43210" maxlength="15"
+                      class="w-full pl-11 pr-4 py-4 bg-surface-container-lowest rounded-lg border-0 ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary font-medium outline-none transition-all"
+                      [class.ring-error]="!contactPhone.trim()"/>
+                  </div>
+                  <p class="text-xs text-outline">SMS with your token code will be sent to this number</p>
+                </div>
+
+                <!-- Email -->
+                <div class="space-y-2">
+                  <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest">
+                    Email Address <span class="text-error">*</span>
+                  </label>
+                  <div class="relative">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-sm">mail</span>
+                    <input type="email" [(ngModel)]="contactEmail" placeholder="you@example.com"
+                      class="w-full pl-11 pr-4 py-4 bg-surface-container-lowest rounded-lg border-0 ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary font-medium outline-none transition-all"
+                      [class.ring-error]="!contactEmail.trim()"/>
+                  </div>
+                  <p class="text-xs text-outline">Detailed booking confirmation email will be sent here</p>
+                </div>
+
+                <!-- Preview of what will be sent -->
+                <div *ngIf="contactPhone.trim() || contactEmail.trim()" class="bg-primary/5 rounded-lg p-4 space-y-2 border border-primary/10">
+                  <p class="text-xs font-bold text-primary uppercase tracking-widest">Notification Preview</p>
+                  <p class="text-xs text-on-surface-variant leading-relaxed">
+                    <strong>SMS:</strong> "IFMS: Aapne {{ fuelType }} fuel book kiya hai — {{ quantity }}L at {{ selectedStationName || 'selected station' }}. Token: [TOKEN]. 24 ghante valid. — Bharat Kinetic"
+                  </p>
+                  <p class="text-xs text-on-surface-variant leading-relaxed">
+                    <strong>Email:</strong> Detailed booking confirmation with token code, station name, fuel type, quantity, amount paid, and expiry time.
+                  </p>
+                </div>
+              </section>
+            </div>
+
+            <!-- Right: Summary & Payment -->
+            <div class="xl:col-span-5 space-y-6">
+              <!-- Summary Card -->
+              <div class="bg-surface-container-lowest rounded-xl p-8 shadow-sm ring-1 ring-outline-variant/10">
+                <h4 class="text-xl font-extrabold font-headline text-primary mb-6">Booking Summary</h4>
+                <div class="space-y-4">
+                  <div class="flex justify-between text-sm"><span class="text-outline">Station</span><span class="font-bold text-right">{{ selectedStationName || '—' }}</span></div>
+                  <div class="flex justify-between text-sm"><span class="text-outline">Fuel Type</span><span class="font-bold">{{ fuelType }}</span></div>
+                  <div class="flex justify-between text-sm"><span class="text-outline">Price / {{ priceUnitLabel }}</span>
+                    <span class="font-bold">
+                      <span *ngIf="fuelPriceLoading" class="inline-block w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></span>
+                      <span *ngIf="!fuelPriceLoading">₹{{ pricePerLitre | number:'1.2-2' }}</span>
+                    </span>
+                  </div>
+                  <div class="flex justify-between text-sm"><span class="text-outline">Volume</span><span class="font-bold">{{ quantity }} {{ fuelType === 'CNG' ? 'KG' : fuelType === 'EV' ? 'kWh' : 'L' }}</span></div>
+                  <div class="h-px bg-surface-container-high my-2"></div>
+                  <div class="flex justify-between text-sm"><span class="text-outline">Subtotal</span><span class="font-bold">₹{{ totalAmount | number:'1.2-2' }}</span></div>
+                  <div class="flex justify-between text-sm"><span class="text-outline">Platform Fee</span><span class="font-bold text-on-tertiary-container">FREE</span></div>
+                  <div class="pt-4">
+                    <div class="flex justify-between items-end">
+                      <span class="text-xs font-bold text-outline uppercase tracking-widest">Total Payable</span>
+                      <span class="text-3xl font-black font-headline text-primary">₹{{ totalAmount | number:'1.2-2' }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Payment Methods -->
+              <div class="bg-surface-container-low rounded-xl p-8 space-y-5">
+                <h4 class="text-lg font-bold font-headline text-primary">Select Payment Method</h4>
+                <div class="space-y-3">
+                  <button *ngFor="let pm of [{icon:'account_balance_wallet', label:'UPI (GPay / PhonePe / Paytm)', sub:'Fastest checkout'}, {icon:'credit_card', label:'Credit / Debit Cards', sub:'Visa, Mastercard, RuPay'}, {icon:'account_balance', label:'Net Banking', sub:'All major Indian banks'}]"
+                    class="w-full flex items-center justify-between p-4 bg-white rounded-lg border border-outline-variant/30 hover:border-secondary hover:shadow-md transition-all group">
+                    <div class="flex items-center gap-4">
+                      <div class="w-10 h-10 flex items-center justify-center bg-surface-container rounded-md">
+                        <span class="material-symbols-outlined text-primary">{{ pm.icon }}</span>
+                      </div>
+                      <div class="text-left">
+                        <p class="font-bold text-sm text-primary">{{ pm.label }}</p>
+                        <p class="text-[10px] text-outline">{{ pm.sub }}</p>
+                      </div>
+                    </div>
+                    <span class="material-symbols-outlined text-outline group-hover:text-secondary">chevron_right</span>
+                  </button>
+                </div>
+
+                <!-- CTA -->
+                <button id="pay-btn" (click)="initiatePayment()"
+                  [disabled]="isBooking || !selectedStationId || quantity <= 0 || pricePerLitre <= 0 || !kycVerified || !kycSessionId || !contactPhone.trim() || !contactEmail.trim()"
+                  class="fuel-gradient w-full py-5 rounded-lg text-white font-black text-lg uppercase tracking-tight shadow-xl hover:opacity-90 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100">
+                  {{ isBooking ? 'Processing…' : 'Proceed to Pay ₹' + (totalAmount | number:'1.2-2') }}
+                </button>
+
+                <div class="flex items-center justify-center gap-2 opacity-50">
+                  <span class="material-symbols-outlined text-xs">verified_user</span>
+                  <span class="text-[10px] font-bold uppercase tracking-widest">PCI-DSS Compliant Secure Payment</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Booking History section removed — now shown as a separate view via sidenav -->
+        </div>
+      </ng-container>
+
+      <!-- ─────────────────────── BOOKING HISTORY VIEW ─────────────────────── -->
+      <ng-container *ngIf="activeView === 'history' && !bookingResult">
+        <div class="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto w-full">
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h3 class="text-3xl font-black font-headline text-primary">Booking History</h3>
+              <p class="text-sm text-on-surface-variant mt-1">All your fuel bookings in one place</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <button (click)="loadMyBookings()" [disabled]="myBookingsLoading"
+                class="flex items-center gap-2 px-4 py-2 bg-white rounded-lg border border-outline-variant/30 text-sm font-bold text-primary hover:shadow-sm transition-all disabled:opacity-50">
+                <span class="material-symbols-outlined text-sm">refresh</span> Refresh
+              </button>
+              <button (click)="activeView='booking'"
+                class="flex items-center gap-2 px-4 py-2 tonal-valley text-white rounded-lg text-sm font-bold">
+                <span class="material-symbols-outlined text-sm">add</span> New Booking
+              </button>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div *ngIf="myBookings.length > 0" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/10">
+              <div class="text-xs font-bold text-outline uppercase tracking-wider mb-1">Total</div>
+              <div class="text-2xl font-black text-primary">{{ myBookings.length }}</div>
+              <div class="text-xs text-outline mt-0.5">bookings</div>
+            </div>
+            <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/10">
+              <div class="text-xs font-bold text-outline uppercase tracking-wider mb-1">Pending</div>
+              <div class="text-2xl font-black text-secondary">{{ pendingBookingsCount }}</div>
+              <div class="text-xs text-outline mt-0.5">active tokens</div>
+            </div>
+            <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/10">
+              <div class="text-xs font-bold text-outline uppercase tracking-wider mb-1">Used</div>
+              <div class="text-2xl font-black text-on-tertiary-container">{{ usedBookingsCount }}</div>
+              <div class="text-xs text-outline mt-0.5">dispensed</div>
+            </div>
+            <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/10">
+              <div class="text-xs font-bold text-outline uppercase tracking-wider mb-1">Total Spent</div>
+              <div class="text-2xl font-black text-primary">₹{{ totalSpentAmount | number:'1.0-0' }}</div>
+              <div class="text-xs text-outline mt-0.5">on fuel</div>
+            </div>
+          </div>
+
+          <div *ngIf="myBookingsLoading" class="text-center py-16 text-on-surface-variant">
+            <div class="inline-block w-10 h-10 border-2 border-primary/30 border-t-primary rounded-full animate-spin mb-4"></div>
+            <p class="text-sm">Loading your history…</p>
+          </div>
+          <div *ngIf="myBookingsError && !myBookingsLoading" class="flex items-center gap-3 bg-error-container/30 rounded-lg p-4 text-sm text-on-error-container">
+            <span class="material-symbols-outlined text-error text-sm">warning</span>
+            {{ myBookingsError }}
+            <button (click)="loadMyBookings()" class="ml-auto font-bold underline">Retry</button>
+          </div>
+          <div *ngIf="!myBookingsLoading && !myBookingsError && myBookings.length === 0"
+            class="text-center py-20 text-on-surface-variant">
+            <span class="material-symbols-outlined text-5xl text-outline block mb-4">receipt_long</span>
+            <p class="text-lg font-bold text-primary mb-2">No bookings yet</p>
+            <p class="text-sm mb-6">Book your first fuel allocation to get started.</p>
+            <button (click)="activeView='booking'" class="tonal-valley text-white px-6 py-3 rounded-lg font-bold text-sm">
+              Book Fuel Now
+            </button>
+          </div>
+
+          <div *ngIf="!myBookingsLoading && myBookings.length > 0"
+            class="bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant/5 shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="w-full border-collapse text-left">
+                <thead>
+                  <tr class="bg-surface-container-high text-on-surface-variant text-[10px] uppercase font-black tracking-widest">
+                    <th class="px-6 py-5">Token</th>
+                    <th class="px-6 py-5">Fuel</th>
+                    <th class="px-6 py-5">Qty</th>
+                    <th class="px-6 py-5">Paid</th>
+                    <th class="px-6 py-5">Status</th>
+                    <th class="px-6 py-5">Booked</th>
+                    <th class="px-6 py-5">Expires</th>
+                    <th class="px-6 py-5">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-outline-variant/10">
+                  <tr *ngFor="let b of pagedMyBookings" class="hover:bg-surface-container-low/50 transition-colors">
+                    <td class="px-6 py-5">
+                      <code class="bg-surface-container-highest px-2 py-1 rounded text-xs font-mono font-bold">{{ b.tokenCode }}</code>
+                    </td>
+                    <td class="px-6 py-5 text-sm font-medium">{{ b.fuelType }}</td>
+                    <td class="px-6 py-5 text-sm font-semibold">{{ b.quantityLiters }} L</td>
+                    <td class="px-6 py-5 text-sm font-semibold">₹{{ b.totalPaid | number:'1.2-2' }}</td>
+                    <td class="px-6 py-5">
+                      <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase"
+                        [class.bg-green-100]="b.tokenStatus === 'USED'"
+                        [class.text-green-700]="b.tokenStatus === 'USED'"
+                        [class.bg-blue-100]="b.tokenStatus === 'PENDING'"
+                        [class.text-blue-700]="b.tokenStatus === 'PENDING'"
+                        [class.bg-red-100]="b.tokenStatus === 'EXPIRED' || b.tokenStatus === 'CANCELLED'"
+                        [class.text-red-700]="b.tokenStatus === 'EXPIRED' || b.tokenStatus === 'CANCELLED'">
+                        <span class="w-1.5 h-1.5 rounded-full mr-1.5 inline-block"
+                          [class.bg-green-500]="b.tokenStatus === 'USED'"
+                          [class.bg-blue-500]="b.tokenStatus === 'PENDING'"
+                          [class.bg-red-500]="b.tokenStatus === 'EXPIRED' || b.tokenStatus === 'CANCELLED'">
+                        </span>
+                        {{ b.tokenStatus }}
+                      </span>
+                    </td>
+                    <td class="px-6 py-5 text-xs text-on-surface-variant">{{ b.bookedAt | date:'MMM d, y HH:mm' }}</td>
+                    <td class="px-6 py-5 text-xs text-on-surface-variant">{{ b.expiresAt | date:'MMM d, y HH:mm' }}</td>
+                    <td class="px-6 py-5">
+                      <button *ngIf="b.tokenStatus === 'PENDING'" (click)="cancelBooking(b.tokenCode)"
+                        class="text-error text-xs font-bold hover:underline flex items-center gap-1">
+                        <span class="material-symbols-outlined text-xs">cancel</span>Cancel
+                      </button>
+                      <span *ngIf="b.tokenStatus !== 'PENDING'" class="text-on-surface-variant text-xs">—</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <app-pagination [totalItems]="myBookings.length" [pageSize]="myBookingPageSize"
+              [currentPage]="myBookingPage" (pageChange)="myBookingPage=$event"
+              class="px-4 border-t border-outline-variant/10 block">
+            </app-pagination>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ─────────────────────── SUPPORT VIEW ───────────────────────────────── -->
+      <ng-container *ngIf="activeView === 'support' && !bookingResult">
+        <div class="p-4 md:p-8 lg:p-12 max-w-4xl mx-auto w-full">
+
+          <!-- Header -->
+          <div class="mb-8">
+            <h3 class="text-3xl font-black font-headline text-primary">Customer Support</h3>
+            <p class="text-sm text-on-surface-variant mt-1">Raise a complaint, track its status, or browse FAQs</p>
+          </div>
+
+          <!-- Tabs -->
+          <div class="flex gap-1 bg-surface-container-low p-1 rounded-xl w-fit mb-8">
+            <button (click)="supportTab='raise'"
+              [class]="supportTab==='raise' ? 'bg-white text-primary shadow-sm' : 'text-outline hover:text-on-surface'"
+              class="px-5 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">add_circle</span>Raise Complaint
+            </button>
+            <button (click)="supportTab='track'; loadMyComplaints()"
+              [class]="supportTab==='track' ? 'bg-white text-primary shadow-sm' : 'text-outline hover:text-on-surface'"
+              class="px-5 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">track_changes</span>Track Status
+            </button>
+            <button (click)="supportTab='faq'"
+              [class]="supportTab==='faq' ? 'bg-white text-primary shadow-sm' : 'text-outline hover:text-on-surface'"
+              class="px-5 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">help</span>FAQ
+            </button>
+          </div>
+
+          <!-- ── RAISE COMPLAINT TAB ── -->
+          <div *ngIf="supportTab === 'raise'" class="space-y-6">
+
+            <div *ngIf="complaintSuccess"
+              class="flex items-start gap-3 bg-green-50 border border-green-200 text-green-800 rounded-xl px-5 py-4 text-sm font-medium">
+              <span class="material-symbols-outlined text-green-600 flex-shrink-0">check_circle</span>
+              <span>{{ complaintSuccess }}</span>
+            </div>
+            <div *ngIf="complaintError"
+              class="flex items-start gap-3 bg-red-50 border border-red-200 text-red-800 rounded-xl px-5 py-4 text-sm font-medium">
+              <span class="material-symbols-outlined text-red-600 flex-shrink-0">error</span>
+              <span>{{ complaintError }}</span>
+            </div>
+
+            <!-- Category -->
+            <div class="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/10 space-y-4">
+              <h4 class="font-bold text-primary">Issue Category</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label *ngFor="let cat of complaintCategories" class="cursor-pointer">
+                  <input type="radio" [value]="cat.value" [(ngModel)]="complaintForm.category" class="hidden peer" name="complaint_cat"/>
+                  <div class="flex items-center gap-3 p-4 rounded-xl border border-outline-variant/20 bg-white
+                              peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/40 transition-all">
+                    <span class="material-symbols-outlined text-primary text-xl">{{ cat.icon }}</span>
+                    <div>
+                      <p class="font-bold text-sm text-on-surface">{{ cat.label }}</p>
+                      <p class="text-xs text-outline">{{ cat.desc }}</p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <!-- Subject + Reference -->
+            <div class="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/10 space-y-4">
+              <h4 class="font-bold text-primary">Complaint Details</h4>
+
+              <div class="space-y-2">
+                <label class="block text-xs font-bold text-outline uppercase tracking-widest">Subject <span class="text-error">*</span></label>
+                <input type="text" [(ngModel)]="complaintForm.subject" maxlength="200"
+                  placeholder="Brief description of the issue"
+                  class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm"/>
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-xs font-bold text-outline uppercase tracking-widest">Token / Transaction ID (optional)</label>
+                <input type="text" [(ngModel)]="complaintForm.referenceId" maxlength="50"
+                  placeholder="e.g. IFM-04-12345678 or transaction ID"
+                  class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm font-mono"/>
+                <p class="text-xs text-outline">If related to a booking or payment, adding a reference ID helps us resolve faster.</p>
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-xs font-bold text-outline uppercase tracking-widest">Description <span class="text-error">*</span></label>
+                <textarea [(ngModel)]="complaintForm.description" rows="5" maxlength="2000"
+                  placeholder="Describe the issue in detail — what happened, when, and where..."
+                  class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm resize-none">
+                </textarea>
+                <p class="text-xs text-outline text-right">{{ complaintForm.description.length }}/2000</p>
+              </div>
+            </div>
+
+            <!-- Submit -->
+            <button (click)="submitComplaint()" [disabled]="complaintSubmitting"
+              class="w-full tonal-valley text-white py-4 rounded-xl font-bold text-base flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90 transition-all">
+              <span *ngIf="complaintSubmitting" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              <span class="material-symbols-outlined" *ngIf="!complaintSubmitting">send</span>
+              {{ complaintSubmitting ? 'Submitting…' : 'Submit Complaint' }}
+            </button>
+
+            <!-- Contact info -->
+            <div class="bg-blue-50 rounded-xl p-5 border border-blue-100 flex items-start gap-4">
+              <span class="material-symbols-outlined text-blue-500 text-2xl flex-shrink-0">info</span>
+              <div class="text-sm text-blue-700 space-y-1">
+                <p class="font-bold">Response Time</p>
+                <p>Complaints are typically resolved within <strong>24–48 hours</strong>. For urgent issues, contact the station directly.</p>
+                <p class="mt-2 font-bold">Helpline: <span class="font-mono">1800-XXX-XXXX</span> (9 AM – 6 PM, Mon–Sat)</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── TRACK STATUS TAB ── -->
+          <div *ngIf="supportTab === 'track'" class="space-y-4">
+
+            <div class="flex items-center justify-between mb-2">
+              <p class="text-sm text-on-surface-variant">All your complaints and their current status</p>
+              <button (click)="loadMyComplaints()" [disabled]="complaintsLoading"
+                class="flex items-center gap-1 text-sm font-bold text-primary hover:underline disabled:opacity-50">
+                <span class="material-symbols-outlined text-sm">refresh</span>Refresh
+              </button>
+            </div>
+
+            <div *ngIf="complaintsLoading" class="text-center py-12">
+              <div class="inline-block w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mb-3"></div>
+              <p class="text-sm text-on-surface-variant">Loading complaints…</p>
+            </div>
+
+            <div *ngIf="complaintsError && !complaintsLoading"
+              class="flex items-center gap-3 bg-error-container/30 rounded-xl p-4 text-sm text-on-error-container">
+              <span class="material-symbols-outlined text-error text-sm">warning</span>{{ complaintsError }}
+            </div>
+
+            <div *ngIf="!complaintsLoading && myComplaints.length === 0 && !complaintsError"
+              class="text-center py-16 text-on-surface-variant">
+              <span class="material-symbols-outlined text-5xl text-outline block mb-4">inbox</span>
+              <p class="text-lg font-bold text-primary mb-2">No complaints yet</p>
+              <p class="text-sm mb-6">You haven't raised any complaints so far.</p>
+              <button (click)="supportTab='raise'" class="tonal-valley text-white px-6 py-3 rounded-xl font-bold text-sm">
+                Raise a Complaint
+              </button>
+            </div>
+
+            <div *ngFor="let c of myComplaints"
+              class="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/10 space-y-4">
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 flex-wrap mb-2">
+                    <span class="text-xs font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-full">
+                      {{ getCategoryLabel(c.category) }}
+                    </span>
+                    <span [class]="'text-xs font-bold px-2.5 py-1 rounded-full ' + getStatusColor(c.status)">
+                      {{ c.status }}
+                    </span>
+                  </div>
+                  <h4 class="font-bold text-on-surface">{{ c.subject }}</h4>
+                  <p class="text-xs text-outline mt-1 font-mono">Ticket: {{ c.id | slice:0:8 }}…</p>
+                </div>
+                <div class="text-right shrink-0">
+                  <p class="text-xs text-outline">{{ c.createdAt | date:'dd MMM yyyy' }}</p>
+                  <p *ngIf="c.resolvedAt" class="text-xs text-green-600 font-bold mt-0.5">
+                    Resolved {{ c.resolvedAt | date:'dd MMM' }}
+                  </p>
+                </div>
+              </div>
+
+              <p class="text-sm text-on-surface-variant leading-relaxed">{{ c.description }}</p>
+
+              <div *ngIf="c.referenceId" class="flex items-center gap-2 text-xs text-outline">
+                <span class="material-symbols-outlined text-sm">link</span>
+                Reference: <code class="font-mono bg-surface-container-low px-2 py-0.5 rounded">{{ c.referenceId }}</code>
+              </div>
+
+              <div *ngIf="c.resolutionNote"
+                class="bg-green-50 border border-green-100 rounded-xl px-4 py-3 text-sm text-green-800">
+                <p class="font-bold mb-1 flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">check_circle</span>Resolution Note
+                </p>
+                <p>{{ c.resolutionNote }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── FAQ TAB ── -->
+          <div *ngIf="supportTab === 'faq'" class="space-y-3">
+            <p class="text-sm text-on-surface-variant mb-6">Frequently asked questions</p>
+
+            <div *ngFor="let faq of faqs; let i = index"
+              class="bg-surface-container-lowest rounded-2xl border border-outline-variant/10 overflow-hidden">
+              <button (click)="toggleFaq(i)"
+                class="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-surface-container-low/50 transition-colors">
+                <span class="font-bold text-on-surface text-sm pr-4">{{ faq.q }}</span>
+                <span class="material-symbols-outlined text-outline flex-shrink-0 transition-transform"
+                  [class.rotate-180]="openFaqIndex === i">expand_more</span>
+              </button>
+              <div *ngIf="openFaqIndex === i"
+                class="px-6 pb-5 text-sm text-on-surface-variant leading-relaxed border-t border-outline-variant/10 pt-4">
+                {{ faq.a }}
+              </div>
+            </div>
+
+            <!-- Still need help -->
+            <div class="mt-8 bg-primary/5 rounded-2xl p-6 border border-primary/10 text-center space-y-3">
+              <span class="material-symbols-outlined text-primary text-3xl block">support_agent</span>
+              <p class="font-bold text-primary">Need more help?</p>
+              <p class="text-sm text-on-surface-variant">Raise a complaint or call our helpline</p>
+              <div class="flex gap-3 justify-center flex-wrap">
+                <button (click)="supportTab='raise'"
+                  class="tonal-valley text-white px-5 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2">
+                  <span class="material-symbols-outlined text-sm">add_circle</span>Raise a Complaint
+                </button>
+                <a href="tel:1800XXXXXXX"
+                  class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-white border border-outline-variant/30 text-primary hover:shadow-sm transition-all">
+                  <span class="material-symbols-outlined text-sm">call</span>1800-XXX-XXXX
+                </a>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </ng-container>
+
+      <!-- ─────────────────────── SETTINGS VIEW ───────────────────────────────── -->
+      <ng-container *ngIf="activeView === 'settings' && !bookingResult">
+        <div class="p-4 md:p-8 lg:p-12 max-w-3xl mx-auto w-full">
+
+          <!-- Header -->
+          <div class="mb-8">
+            <h3 class="text-3xl font-black font-headline text-primary">Settings</h3>
+            <p class="text-sm text-on-surface-variant mt-1">Manage your profile, password, and preferences</p>
+          </div>
+
+          <!-- Global success banner (shared across tabs) -->
+          <div *ngIf="profileSuccess"
+            class="flex items-center gap-3 bg-green-50 border border-green-200 text-green-800 rounded-xl px-5 py-3 text-sm font-medium mb-6">
+            <span class="material-symbols-outlined text-green-600 text-sm">check_circle</span>{{ profileSuccess }}
+          </div>
+
+          <!-- Tabs -->
+          <div class="flex gap-1 bg-surface-container-low p-1 rounded-xl mb-8 flex-wrap">
+            <button (click)="settingsTab='profile'; loadProfile()"
+              [class]="settingsTab==='profile' ? 'bg-white text-primary shadow-sm' : 'text-outline hover:text-on-surface'"
+              class="px-4 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">person</span>Profile
+            </button>
+            <button (click)="settingsTab='password'"
+              [class]="settingsTab==='password' ? 'bg-white text-primary shadow-sm' : 'text-outline hover:text-on-surface'"
+              class="px-4 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">lock</span>Password
+            </button>
+            <button (click)="settingsTab='notifications'"
+              [class]="settingsTab==='notifications' ? 'bg-white text-primary shadow-sm' : 'text-outline hover:text-on-surface'"
+              class="px-4 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">notifications</span>Notifications
+            </button>
+            <button (click)="settingsTab='fuel'"
+              [class]="settingsTab==='fuel' ? 'bg-white text-primary shadow-sm' : 'text-outline hover:text-on-surface'"
+              class="px-4 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm">local_gas_station</span>Fuel Preferences
+            </button>
+          </div>
+
+          <!-- ── PROFILE TAB ── -->
+          <div *ngIf="settingsTab === 'profile'" class="space-y-6">
+            <div *ngIf="profileLoading" class="text-center py-10">
+              <div class="inline-block w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+            </div>
+
+            <div *ngIf="!profileLoading" class="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/10 space-y-5">
+              <h4 class="font-bold text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">badge</span>Personal Information
+              </h4>
+
+              <div *ngIf="profileError" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-sm">
+                <span class="material-symbols-outlined text-sm">error</span>{{ profileError }}
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-xs font-bold text-outline uppercase tracking-widest">Full Name <span class="text-error">*</span></label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-sm">person</span>
+                  <input type="text" [(ngModel)]="profileForm.fullName" maxlength="100"
+                    placeholder="Your full name"
+                    class="w-full pl-11 pr-4 py-3.5 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm font-medium"/>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-xs font-bold text-outline uppercase tracking-widest">Mobile Number</label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-sm">smartphone</span>
+                  <input type="tel" [(ngModel)]="profileForm.phoneNumber" maxlength="15"
+                    placeholder="+91 98765 43210"
+                    class="w-full pl-11 pr-4 py-3.5 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm font-medium"/>
+                </div>
+                <p class="text-xs text-outline">Used for booking confirmations and OTP login</p>
+              </div>
+
+              <button (click)="saveProfile()" [disabled]="profileSaving"
+                class="tonal-valley text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 disabled:opacity-50">
+                <span *ngIf="profileSaving" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                <span class="material-symbols-outlined text-sm" *ngIf="!profileSaving">save</span>
+                {{ profileSaving ? 'Saving…' : 'Save Changes' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- ── PASSWORD TAB ── -->
+          <div *ngIf="settingsTab === 'password'" class="space-y-6">
+            <div class="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/10 space-y-5">
+              <h4 class="font-bold text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">lock_reset</span>Change Password
+              </h4>
+
+              <div *ngIf="passwordError" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 rounded-xl px-4 py-3 text-sm">
+                <span class="material-symbols-outlined text-sm">error</span>{{ passwordError }}
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-xs font-bold text-outline uppercase tracking-widest">Current Password</label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-sm">lock</span>
+                  <input [type]="showCurrentPwd ? 'text' : 'password'" [(ngModel)]="passwordForm.currentPassword"
+                    placeholder="Enter current password"
+                    class="w-full pl-11 pr-12 py-3.5 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm"/>
+                  <button type="button" (click)="showCurrentPwd=!showCurrentPwd"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface">
+                    <span class="material-symbols-outlined text-sm">{{ showCurrentPwd ? 'visibility_off' : 'visibility' }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-xs font-bold text-outline uppercase tracking-widest">New Password</label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-sm">lock_open</span>
+                  <input [type]="showNewPwd ? 'text' : 'password'" [(ngModel)]="passwordForm.newPassword"
+                    placeholder="Min. 8 characters"
+                    class="w-full pl-11 pr-12 py-3.5 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm"/>
+                  <button type="button" (click)="showNewPwd=!showNewPwd"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface">
+                    <span class="material-symbols-outlined text-sm">{{ showNewPwd ? 'visibility_off' : 'visibility' }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-xs font-bold text-outline uppercase tracking-widest">Confirm New Password</label>
+                <div class="relative">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline text-sm">lock_open</span>
+                  <input type="password" [(ngModel)]="passwordForm.confirmPassword"
+                    placeholder="Re-enter new password"
+                    class="w-full pl-11 pr-4 py-3.5 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm"
+                    [class.ring-error]="passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword"/>
+                </div>
+                <p *ngIf="passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword"
+                  class="text-xs text-error">Passwords do not match</p>
+              </div>
+
+              <button (click)="changePassword()" [disabled]="passwordSaving"
+                class="tonal-valley text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 disabled:opacity-50">
+                <span *ngIf="passwordSaving" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                <span class="material-symbols-outlined text-sm" *ngIf="!passwordSaving">key</span>
+                {{ passwordSaving ? 'Updating…' : 'Update Password' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- ── NOTIFICATIONS TAB ── -->
+          <div *ngIf="settingsTab === 'notifications'" class="space-y-6">
+            <div class="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/10 space-y-5">
+              <h4 class="font-bold text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">notifications_active</span>Notification Preferences
+              </h4>
+              <p class="text-xs text-outline">Choose how you want to be notified about your bookings and account activity.</p>
+
+              <!-- Toggle rows -->
+              <div class="space-y-4 divide-y divide-outline-variant/10">
+
+                <div class="flex items-center justify-between pt-4 first:pt-0">
+                  <div>
+                    <p class="font-semibold text-sm text-on-surface">Booking Confirmation — SMS</p>
+                    <p class="text-xs text-outline mt-0.5">Receive token code via SMS after booking</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="notifPrefs.bookingConfirmSms" class="sr-only peer"/>
+                    <div class="w-11 h-6 bg-outline-variant/40 peer-checked:bg-primary rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                  </label>
+                </div>
+
+                <div class="flex items-center justify-between pt-4">
+                  <div>
+                    <p class="font-semibold text-sm text-on-surface">Booking Confirmation — Email</p>
+                    <p class="text-xs text-outline mt-0.5">Receive detailed booking receipt via email</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="notifPrefs.bookingConfirmEmail" class="sr-only peer"/>
+                    <div class="w-11 h-6 bg-outline-variant/40 peer-checked:bg-primary rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                  </label>
+                </div>
+
+                <div class="flex items-center justify-between pt-4">
+                  <div>
+                    <p class="font-semibold text-sm text-on-surface">Fuel Dispensed — SMS</p>
+                    <p class="text-xs text-outline mt-0.5">Get notified when your fuel is dispensed at the pump</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="notifPrefs.fuelDispensedSms" class="sr-only peer"/>
+                    <div class="w-11 h-6 bg-outline-variant/40 peer-checked:bg-primary rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                  </label>
+                </div>
+
+                <div class="flex items-center justify-between pt-4">
+                  <div>
+                    <p class="font-semibold text-sm text-on-surface">Payment Receipt — Email</p>
+                    <p class="text-xs text-outline mt-0.5">Receive payment receipt after each transaction</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="notifPrefs.paymentReceiptEmail" class="sr-only peer"/>
+                    <div class="w-11 h-6 bg-outline-variant/40 peer-checked:bg-primary rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                  </label>
+                </div>
+
+                <div class="flex items-center justify-between pt-4">
+                  <div>
+                    <p class="font-semibold text-sm text-on-surface">Promotional Alerts</p>
+                    <p class="text-xs text-outline mt-0.5">Offers, discounts, and platform updates</p>
+                  </div>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" [(ngModel)]="notifPrefs.promotionalAlerts" class="sr-only peer"/>
+                    <div class="w-11 h-6 bg-outline-variant/40 peer-checked:bg-primary rounded-full transition-colors after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                  </label>
+                </div>
+
+              </div>
+
+              <button (click)="saveNotifPrefs()"
+                class="tonal-valley text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">save</span>Save Preferences
+              </button>
+            </div>
+          </div>
+
+          <!-- ── FUEL PREFERENCES TAB ── -->
+          <div *ngIf="settingsTab === 'fuel'" class="space-y-6">
+            <div class="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant/10 space-y-6">
+              <h4 class="font-bold text-primary flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">local_gas_station</span>Fuel Preferences
+              </h4>
+              <p class="text-xs text-outline">These defaults will be pre-selected when you start a new booking.</p>
+
+              <!-- Default Fuel Type -->
+              <div class="space-y-3">
+                <label class="block text-xs font-bold text-outline uppercase tracking-widest">Default Fuel Type</label>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <label *ngFor="let ft of ['Petrol','Diesel','CNG','EV']" class="cursor-pointer">
+                    <input type="radio" [value]="ft" [(ngModel)]="fuelPrefs.defaultFuelType" class="hidden peer" name="default_fuel"/>
+                    <div class="flex flex-col items-center gap-2 p-4 rounded-xl border border-outline-variant/20 bg-white
+                                peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/40 transition-all text-center">
+                      <span class="material-symbols-outlined text-primary text-2xl">
+                        {{ ft === 'Petrol' ? 'local_gas_station' : ft === 'Diesel' ? 'oil_barrel' : ft === 'CNG' ? 'eco' : 'ev_station' }}
+                      </span>
+                      <span class="font-bold text-sm text-on-surface">{{ ft }}</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Default Payment Method -->
+              <div class="space-y-3">
+                <label class="block text-xs font-bold text-outline uppercase tracking-widest">Default Payment Method</label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <label *ngFor="let pm of [{v:'UPI',l:'UPI',i:'account_balance_wallet'},{v:'Card',l:'Card',i:'credit_card'},{v:'NetBanking',l:'Net Banking',i:'account_balance'}]" class="cursor-pointer">
+                    <input type="radio" [value]="pm.v" [(ngModel)]="fuelPrefs.defaultPaymentMethod" class="hidden peer" name="default_pm"/>
+                    <div class="flex items-center gap-3 p-4 rounded-xl border border-outline-variant/20 bg-white
+                                peer-checked:border-primary peer-checked:bg-primary/5 hover:border-primary/40 transition-all">
+                      <span class="material-symbols-outlined text-primary">{{ pm.i }}</span>
+                      <span class="font-bold text-sm text-on-surface">{{ pm.l }}</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <button (click)="saveFuelPrefs()"
+                class="tonal-valley text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm">save</span>Save Preferences
+              </button>
+            </div>
+
+            <!-- Info box -->
+            <div class="bg-blue-50 rounded-xl p-5 border border-blue-100 flex items-start gap-3">
+              <span class="material-symbols-outlined text-blue-500 flex-shrink-0">info</span>
+              <p class="text-sm text-blue-700">
+                Your default fuel type will be pre-selected on the booking form. You can always change it before confirming a booking.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </ng-container>
+
+      <!-- ─────────────────────── BOOKING CONFIRMATION (result available) ───── -->
+      <ng-container *ngIf="bookingResult">
+        <div class="p-4 md:p-8 lg:p-12">
+          <div class="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+            <!-- Left: Success + QR -->
+            <div class="lg:col-span-7 flex flex-col items-center lg:items-start space-y-8">
+              <div class="text-center lg:text-left space-y-4">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-tertiary text-white mb-2">
+                  <span class="material-symbols-outlined text-4xl" style="font-variation-settings:'FILL' 1;">check_circle</span>
+                </div>
+                <h1 class="font-headline text-4xl md:text-5xl font-extrabold tracking-tight text-primary">Payment Successful!</h1>
+                <p class="text-on-surface-variant text-lg">Fuel token generated. Show at the pump to refuel.</p>
+              </div>
+
+              <div class="w-full bg-surface-container-lowest rounded-xl p-8 shadow-sm flex flex-col items-center space-y-6 border border-outline-variant/10">
+                <div class="relative">
+                  <canvas id="qr-code-canvas" class="w-56 h-56 rounded-lg"></canvas>
+                  <div class="absolute -top-3 -right-3 bg-secondary text-on-secondary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">Scan Ready</div>
+                </div>
+                <div class="text-center space-y-2">
+                  <p class="text-xs text-on-surface-variant font-bold uppercase tracking-widest">Secure Fuel Token</p>
+                  <div class="font-headline text-3xl font-black text-primary tracking-tighter bg-surface-container-low px-6 py-3 rounded-lg border border-outline-variant/20">
+                    {{ bookingResult.tokenCode }}
+                  </div>
+                </div>
+                <div class="flex items-center flex-col space-y-1">
+                  <div class="flex items-center gap-2 text-on-tertiary-container font-semibold">
+                    <span class="material-symbols-outlined text-xl">info</span>
+                    <span class="text-sm uppercase tracking-wider font-label">Instructions</span>
+                  </div>
+                  <p class="text-on-surface-variant text-sm text-center">Show this code or scan QR at the pump. Valid for 24 hours.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Details & Actions -->
+            <div class="lg:col-span-5 space-y-6">
+              <div class="bg-surface-container-low rounded-xl p-6 space-y-4">
+                <h3 class="font-headline text-xl font-bold text-primary">Booking Details</h3>
+                <div class="flex justify-between items-center"><span class="text-on-surface-variant text-sm">Fuel Type</span>
+                  <div class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings:'FILL' 1;">local_gas_station</span>
+                    <span class="font-bold">{{ bookingResult.fuelType }}</span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center"><span class="text-on-surface-variant text-sm">Quantity</span><span class="font-bold">{{ bookingResult.quantityLiters }} Litres</span></div>
+                <div class="flex justify-between items-center"><span class="text-on-surface-variant text-sm">Amount Paid</span><span class="font-bold">₹{{ bookingResult.totalPaid | number:'1.2-2' }}</span></div>
+                <div class="h-px bg-white/50 w-full"></div>
+                <div class="flex justify-between items-start">
+                  <span class="text-on-surface-variant text-sm">Expires</span>
+                  <div class="text-right">
+                    <p class="text-error font-bold text-sm">{{ bookingResult.expiresAt | date:'MMM d, HH:mm' }}</p>
+                    <p class="text-[10px] text-outline uppercase tracking-tighter">Valid 24 hours</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-4">
+                <button (click)="downloadReceipt()" class="tonal-valley text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 shadow-lg hover:opacity-90 active:scale-[0.98] transition-all">
+                  <span class="material-symbols-outlined">download</span>Download Receipt
+                </button>
+                <button (click)="goBack()" class="border border-outline/20 text-on-surface font-bold py-4 rounded-xl flex items-center justify-center gap-3 hover:bg-surface-container-highest transition-all active:scale-[0.98]">
+                  <span class="material-symbols-outlined">dashboard</span>Back to Dashboard
+                </button>
+              </div>
+
+              <div class="bg-surface-container-highest/50 rounded-lg p-4 flex items-center gap-4">
+                <div class="bg-white p-2 rounded-lg">
+                  <span class="material-symbols-outlined text-primary">support_agent</span>
+                </div>
+                <div>
+                  <p class="text-xs text-on-surface-variant font-medium">Need help at the station?</p>
+                  <p class="text-sm font-bold text-primary">Call Support: 1800-BK-FUEL</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Razorpay Mock Modal -->
+      <div *ngIf="showPaymentModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-primary/40 backdrop-blur-sm" (click)="closePaymentModal()"></div>
+        <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+          <div class="p-6 border-b border-surface-container-high flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 tonal-valley rounded-lg flex items-center justify-center">
+                <span class="material-symbols-outlined text-white text-sm">payments</span>
+              </div>
+              <h3 class="text-xl font-bold font-headline">Secure Checkout</h3>
+            </div>
+            <button (click)="closePaymentModal()" class="text-on-surface-variant hover:text-primary transition-colors">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+
+          <div *ngIf="paymentStep === 'select'" class="p-6 space-y-6">
+            <div class="text-center">
+              <div class="text-4xl font-black font-headline text-primary">₹{{ totalAmount | number:'1.2-2' }}</div>
+              <p class="text-sm text-on-surface-variant">IFMS Fuel Booking</p>
+            </div>
+            <div class="space-y-3">
+              <label *ngFor="let m of [{val:'UPI', icon:'account_balance_wallet', label:'UPI (GPay, PhonePe, Paytm)'}, {val:'Card', icon:'credit_card', label:'Credit / Debit Card'}, {val:'Netbanking', icon:'account_balance', label:'Net Banking'}]" class="cursor-pointer">
+                <input type="radio" [(ngModel)]="paymentMethod" [value]="m.val" class="hidden peer" name="pm"/>
+                <div class="flex items-center gap-4 p-4 bg-surface-container-low rounded-xl peer-checked:ring-2 peer-checked:ring-secondary peer-checked:bg-secondary-fixed/20 transition-all">
+                  <span class="material-symbols-outlined text-primary">{{ m.icon }}</span>
+                  <span class="font-bold text-sm">{{ m.label }}</span>
+                </div>
+              </label>
+            </div>
+            <button (click)="processPayment()" class="fuel-gradient w-full py-4 rounded-xl text-white font-black text-lg shadow-xl hover:opacity-90 active:scale-[0.98] transition-all">
+              Pay ₹{{ totalAmount | number:'1.2-2' }}
+            </button>
+          </div>
+
+          <div *ngIf="paymentStep === 'processing'" class="p-12 flex flex-col items-center gap-6">
+            <div class="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+            <div class="text-center">
+              <p class="font-bold text-on-surface">Processing via {{ paymentMethod }}…</p>
+              <p class="text-sm text-on-surface-variant mt-1">Please do not close this window</p>
+            </div>
+          </div>
+
+          <div *ngIf="paymentStep === 'done'" class="p-12 flex flex-col items-center gap-6">
+            <div class="w-16 h-16 bg-tertiary rounded-full flex items-center justify-center">
+              <span class="material-symbols-outlined text-white text-3xl" style="font-variation-settings:'FILL' 1;">check_circle</span>
+            </div>
+            <div class="text-center">
+              <p class="font-bold text-xl text-on-surface">Payment Successful!</p>
+              <p class="text-sm text-on-surface-variant mt-1">Creating your fuel token…</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-20 lg:hidden"></div>
+    </main>
+
+    <!-- Bottom Nav -->
+    <nav class="fixed bottom-0 w-full z-50 lg:hidden bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.05)] border-t border-outline-variant/20 h-16 px-4 flex justify-around items-center">
+      <a (click)="goBack()" class="cursor-pointer flex flex-col items-center text-outline font-label text-[10px] uppercase font-bold tracking-widest">
+        <span class="material-symbols-outlined">home</span><span>Home</span>
+      </a>
+      <a (click)="activeView='booking'" class="cursor-pointer flex flex-col items-center font-label text-[10px] uppercase font-bold tracking-widest"
+         [class]="activeView==='booking' ? 'text-primary' : 'text-outline'">
+        <span class="material-symbols-outlined">local_gas_station</span><span>Book</span>
+      </a>
+      <a (click)="activeView='history'" class="cursor-pointer flex flex-col items-center font-label text-[10px] uppercase font-bold tracking-widest"
+         [class]="activeView==='history' ? 'text-primary' : 'text-outline'">
+        <span class="material-symbols-outlined">receipt_long</span><span>History</span>
+      </a>
+      <a (click)="openSupport('raise')" class="cursor-pointer flex flex-col items-center font-label text-[10px] uppercase font-bold tracking-widest"
+         [class]="activeView==='support' ? 'text-primary' : 'text-outline'">
+        <span class="material-symbols-outlined">support_agent</span><span>Support</span>
+      </a>
+      <a (click)="openSettings('profile')" class="cursor-pointer flex flex-col items-center font-label text-[10px] uppercase font-bold tracking-widest"
+         [class]="activeView==='settings' ? 'text-primary' : 'text-outline'">
+        <span class="material-symbols-outlined">settings</span><span>Settings</span>
+      </a>
+    </nav>
+  </ng-container>
+
+  <!-- ═══════════════════════════════════════ DEALER — TOKEN PORTAL ══ -->
+  <ng-container *ngIf="role === 'Dealer'">
+
+    <!-- Sidenav -->
+    <aside class="bg-surface-container-low h-screen w-64 hidden lg:flex flex-col sticky top-0 p-4">
+      <div class="flex items-center gap-3 mb-8 px-2">
+        <div class="w-10 h-10 tonal-valley rounded-full flex items-center justify-center text-white">
+          <span class="material-symbols-outlined">person</span>
+        </div>
+        <div>
+          <div class="text-sm font-bold text-primary">Fuel Station Dealer</div>
+          <div class="text-[10px] text-outline uppercase tracking-wider">{{ role }}</div>
+        </div>
+      </div>
+      <nav class="flex-1 flex flex-col gap-1">
+        <a (click)="goBack()" class="cursor-pointer text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg flex items-center gap-3 transition-all">
+          <span class="material-symbols-outlined">analytics</span>Command Center
+        </a>
+        <a class="text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg flex items-center gap-3 transition-all">
+          <span class="material-symbols-outlined">inventory_2</span>Inventory
+        </a>
+        <a class="bg-white text-primary font-bold rounded-lg px-4 py-3 shadow-sm flex items-center gap-3">
+          <span class="material-symbols-outlined">qr_code_scanner</span>Token Portal
+        </a>
+        <a class="text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg flex items-center gap-3 transition-all">
+          <span class="material-symbols-outlined">groups</span>Staff Mgmt
+        </a>
+        <a class="text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg flex items-center gap-3 transition-all">
+          <span class="material-symbols-outlined">support_agent</span>Support
+        </a>
+      </nav>
+      <div class="mt-auto pt-4 flex flex-col gap-1">
+        <a (click)="goBack()" class="cursor-pointer text-outline px-4 py-3 flex items-center gap-3 transition-all">
+          <span class="material-symbols-outlined">arrow_back</span>Back
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 overflow-y-auto flex flex-col bg-surface">
+      <!-- Top Bar -->
+      <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center px-6 py-4 shadow-sm">
+        <div class="flex items-center gap-8">
+          <span class="text-xl font-black text-primary font-headline lg:hidden">Bharat Kinetic</span>
+          <nav class="hidden md:flex gap-8 font-headline font-bold tracking-tight">
+            <a (click)="goBack()" class="cursor-pointer text-outline hover:text-primary transition-colors">Dashboard</a>
+            <a class="text-outline hover:text-primary transition-colors">Inventory</a>
+            <a class="text-primary border-b-2 border-primary-container pb-1">Scanner</a>
+            <a class="text-outline hover:text-primary transition-colors">Reports</a>
+          </nav>
+        </div>
+        <div class="flex items-center gap-4">
+          <span class="material-symbols-outlined text-outline cursor-pointer">notifications</span>
+          <span class="material-symbols-outlined text-outline cursor-pointer">account_circle</span>
+        </div>
+      </header>
+
+      <div class="p-4 md:p-8 space-y-8 bg-surface">
+
+        <!-- Header -->
+        <section class="max-w-5xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 class="text-3xl font-extrabold text-on-surface tracking-tight mb-2">Token Validation Portal</h1>
+            <p class="text-on-surface-variant max-w-md">Secure fuel dispensing terminal. Verify digital tokens to authorize transactions.</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="px-4 py-2 bg-tertiary text-on-tertiary rounded-full text-xs font-bold flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-tertiary-fixed animate-pulse"></span>TERMINAL ACTIVE
+            </div>
+          </div>
+        </section>
+
+        <!-- Bento Layout -->
+        <section class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- Left: Scanner & Entry -->
+          <div class="lg:col-span-7 space-y-6">
+
+            <!-- Token Input -->
+            <div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm space-y-6">
+              <div>
+                <label class="block text-sm font-semibold text-on-surface-variant mb-2 tracking-wide uppercase">Enter Secure Token</label>
+                <div class="relative">
+                  <input [(ngModel)]="tokenInput" type="text" maxlength="20" placeholder="IFM-XX-XXXXXXXX"
+                    class="w-full bg-surface-container-highest border-none rounded-lg p-6 text-2xl font-mono tracking-[0.15em] focus:ring-2 focus:ring-primary focus:bg-white transition-all outline-none placeholder:text-outline-variant/60 uppercase"/>
+                  <button (click)="validateToken()" [disabled]="isValidating || !tokenInput"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-primary hover:bg-primary-fixed rounded-lg transition-colors disabled:opacity-40">
+                    <span class="material-symbols-outlined">arrow_forward</span>
+                  </button>
+                </div>
+                <p class="mt-3 text-xs text-outline italic">Manual entry for physical voucher or text-based tokens.</p>
+              </div>
+
+              <div class="flex items-center gap-4 py-2">
+                <div class="h-px flex-1 bg-surface-container-high"></div>
+                <span class="text-xs font-bold text-outline uppercase tracking-widest">OR SCAN QR</span>
+                <div class="h-px flex-1 bg-surface-container-high"></div>
+              </div>
+
+              <!-- Scanner viewport placeholder -->
+              <div class="relative aspect-video bg-on-surface rounded-xl overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-primary-container/60 to-primary/60"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center text-white p-6 text-center space-y-4">
+                  <div class="w-48 h-48 border-2 border-primary-fixed-dim/50 rounded-2xl relative">
+                    <div class="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary-fixed rounded-tl-lg"></div>
+                    <div class="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary-fixed rounded-tr-lg"></div>
+                    <div class="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary-fixed rounded-bl-lg"></div>
+                    <div class="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary-fixed rounded-br-lg"></div>
+                    <div class="absolute top-0 left-0 w-full h-0.5 bg-primary-fixed/40 animate-bounce" style="animation-duration:2s;"></div>
+                  </div>
+                  <p class="text-sm font-medium bg-on-surface/40 backdrop-blur-md px-4 py-2 rounded-full">Position QR Code within the frame</p>
+                </div>
+              </div>
+
+              <!-- Status chips -->
+              <div class="grid grid-cols-3 gap-4">
+                <div [class]="dealerTokenState === 'verified' || dealerTokenState === 'confirmed' ? 'bg-tertiary-container/20 p-4 rounded-lg flex items-center gap-3' : 'bg-surface-container-low p-4 rounded-lg flex items-center gap-3 opacity-40'">
+                  <span class="material-symbols-outlined text-on-tertiary-container">check_circle</span>
+                  <span class="text-sm font-bold text-on-tertiary-container">{{ dealerTokenState === 'confirmed' ? 'Confirmed' : 'Token Verified' }}</span>
+                </div>
+                <div [class]="dealerTokenState === 'invalid' || dealerTokenState === 'used' || dealerTokenState === 'cancelled' ? 'bg-error-container/30 p-4 rounded-lg flex items-center gap-3' : 'bg-surface-container-low p-4 rounded-lg flex items-center gap-3 opacity-40'">
+                  <span class="material-symbols-outlined text-error">cancel</span>
+                  <span class="text-sm font-bold text-error">
+                    {{ dealerTokenState === 'used' ? 'Used' : dealerTokenState === 'cancelled' ? 'Cancelled' : 'Invalid' }}
+                  </span>
+                </div>
+                <div [class]="dealerTokenState === 'expired' ? 'bg-secondary-fixed/20 p-4 rounded-lg flex items-center gap-3' : 'bg-surface-container-low p-4 rounded-lg flex items-center gap-3 opacity-40'">
+                  <span class="material-symbols-outlined text-secondary">history</span>
+                  <span class="text-sm font-bold text-secondary">Expired</span>
+                </div>
+              </div>
+
+              <div *ngIf="dealerInventoryNote" class="mt-4 text-xs text-on-surface-variant">
+                {{ dealerInventoryNote }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Transaction Data & CTA -->
+          <div class="lg:col-span-5">
+            <div class="bg-surface-container-low p-8 rounded-xl h-full flex flex-col space-y-6">
+              <div class="flex justify-between items-start">
+                <h2 class="text-lg font-bold text-on-surface uppercase tracking-wider">Transaction Data</h2>
+                <span class="text-[10px] bg-primary text-white px-2 py-1 rounded">SECURE SESSION</span>
+              </div>
+
+              <!-- Validation result -->
+              <div *ngIf="validationResult" class="space-y-5 flex-1">
+                <div class="flex items-center gap-4">
+                  <div class="w-14 h-14 bg-surface-container-highest rounded-full flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary text-3xl">person</span>
+                  </div>
+                  <div>
+                    <div class="text-xs text-outline-variant font-bold uppercase tracking-widest">Customer ID</div>
+                    <div class="text-lg font-bold text-on-surface font-mono">{{ validationResult.customerId | slice:0:12 }}…</div>
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="space-y-1">
+                    <div class="text-xs text-outline-variant font-bold uppercase">Fuel Type</div>
+                    <div class="flex items-center gap-2">
+                      <span class="w-3 h-3 rounded-full bg-secondary"></span>
+                      <span class="text-base font-bold">{{ validationResult.fuelType }}</span>
+                    </div>
+                  </div>
+                  <div class="space-y-1">
+                    <div class="text-xs text-outline-variant font-bold uppercase">Volume</div>
+                    <div class="text-base font-bold">{{ validationResult.quantityLiters | number:'1.0-2' }} L</div>
+                  </div>
+                  <div class="space-y-1">
+                    <div class="text-xs text-outline-variant font-bold uppercase">Amount</div>
+                    <div class="text-base font-bold">₹{{ validationResult.totalPaid | number:'1.2-2' }}</div>
+                  </div>
+                  <div class="space-y-1">
+                    <div class="text-xs text-outline-variant font-bold uppercase">Payment</div>
+                    <div class="flex items-center gap-1 text-on-tertiary-container">
+                      <span class="material-symbols-outlined text-sm">verified</span>
+                      <span class="text-base font-bold">Prepaid</span>
+                    </div>
+                  </div>
+                </div>
+                <!-- Progress bar -->
+                <div class="space-y-2 pt-2">
+                  <div class="flex justify-between text-xs font-bold text-on-surface-variant">
+                    <span>PUMP READY</span><span>0.00 / {{ validationResult.quantityLiters }} L</span>
+                  </div>
+                  <div class="h-3 w-full bg-surface-container-high rounded-full overflow-hidden">
+                    <div class="h-full w-0 bg-secondary rounded-full relative overflow-hidden">
+                      <div class="absolute inset-0 kinetic-shimmer"></div>
+                    </div>
+                  </div>
+                </div>
+                <button (click)="confirmDispensing()"
+                  class="w-full fuel-gradient text-white py-6 rounded-lg font-bold text-xl tracking-tight shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-3">
+                  <span class="material-symbols-outlined">local_gas_station</span>Confirm & Refuel
+                </button>
+                <p class="text-center text-[10px] text-outline px-8 uppercase tracking-widest leading-relaxed">
+                  Confirming will deduct stock from tank and mark token as USED.
+                </p>
+              </div>
+
+              <!-- Empty state -->
+              <div *ngIf="!validationResult" class="flex-1 flex flex-col items-center justify-center gap-4 py-8">
+                <div class="w-16 h-16 bg-surface-container-highest rounded-full flex items-center justify-center">
+                  <span class="material-symbols-outlined text-outline text-3xl">qr_code_scanner</span>
+                </div>
+                <p class="text-sm text-on-surface-variant text-center">Enter a token code or scan a QR code to see transaction details here.</p>
+                <div *ngIf="isValidating" class="flex items-center gap-2 text-primary">
+                  <div class="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                  <span class="text-sm font-medium">Validating token…</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="h-20 lg:hidden"></div>
+    </main>
+
+    <!-- Mobile Bottom Nav -->
+    <footer class="fixed bottom-0 w-full z-50 lg:hidden bg-white border-t border-outline-variant/20 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] flex justify-around items-center h-16 px-4 font-label text-[10px] uppercase font-bold tracking-widest">
+      <a (click)="goBack()" class="cursor-pointer flex flex-col items-center text-outline"><span class="material-symbols-outlined">home</span><span>Home</span></a>
+      <a class="flex flex-col items-center text-outline"><span class="material-symbols-outlined">inventory_2</span><span>Inventory</span></a>
+      <a class="flex flex-col items-center text-primary scale-110"><span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">center_focus_strong</span><span>Scan</span></a>
+      <a class="flex flex-col items-center text-outline"><span class="material-symbols-outlined">person</span><span>Account</span></a>
+    </footer>
+  </ng-container>
+
+  <!-- ═══════════════════ BOOKING SUCCESS POPUP ═══════════════════════════ -->
+  <div *ngIf="showSuccessPopup && successPopupData"
+    class="fixed inset-0 z-[9999] flex items-start justify-end p-6 pointer-events-none">
+
+    <!-- Backdrop blur (click to dismiss) -->
+    <div class="absolute inset-0 pointer-events-auto" (click)="dismissSuccessPopup()"></div>
+
+    <!-- Popup card -->
+    <div class="relative pointer-events-auto w-full max-w-sm bg-white rounded-2xl shadow-2xl border border-outline-variant/10 overflow-hidden animate-slide-in-right">
+
+      <!-- Green header bar -->
+      <div class="bg-gradient-to-r from-[#1a7a4a] to-[#22c55e] px-6 py-4 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
+          <span class="material-symbols-outlined text-white text-2xl" style="font-variation-settings:'FILL' 1;">check_circle</span>
+        </div>
+        <div>
+          <p class="text-white font-black text-base leading-tight">Fuel Booked Successfully!</p>
+          <p class="text-white/80 text-xs">Bharat Kinetic · IFMS</p>
+        </div>
+        <button (click)="dismissSuccessPopup()" class="ml-auto text-white/70 hover:text-white transition-colors">
+          <span class="material-symbols-outlined text-xl">close</span>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="px-6 py-5 space-y-4">
+
+        <!-- Token code -->
+        <div class="flex items-center justify-between bg-surface-container-low rounded-xl px-4 py-3">
+          <div>
+            <p class="text-[10px] font-bold text-outline uppercase tracking-widest">Booking Token</p>
+            <p class="font-mono font-black text-xl text-primary tracking-wider mt-0.5">{{ successPopupData.tokenCode }}</p>
+          </div>
+          <span class="material-symbols-outlined text-primary text-3xl">confirmation_number</span>
+        </div>
+
+        <!-- Details grid -->
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          <div class="bg-surface-container-lowest rounded-lg px-3 py-2">
+            <p class="text-[10px] text-outline font-bold uppercase tracking-widest">Station</p>
+            <p class="font-semibold text-on-surface mt-0.5 text-xs leading-tight">{{ successPopupData.stationName }}</p>
+          </div>
+          <div class="bg-surface-container-lowest rounded-lg px-3 py-2">
+            <p class="text-[10px] text-outline font-bold uppercase tracking-widest">Fuel Type</p>
+            <p class="font-semibold text-on-surface mt-0.5">{{ successPopupData.fuelType }}</p>
+          </div>
+          <div class="bg-surface-container-lowest rounded-lg px-3 py-2">
+            <p class="text-[10px] text-outline font-bold uppercase tracking-widest">Quantity</p>
+            <p class="font-semibold text-on-surface mt-0.5">{{ successPopupData.quantity }} L</p>
+          </div>
+          <div class="bg-surface-container-lowest rounded-lg px-3 py-2">
+            <p class="text-[10px] text-outline font-bold uppercase tracking-widest">Amount Paid</p>
+            <p class="font-semibold text-on-surface mt-0.5">₹{{ successPopupData.totalPaid | number:'1.2-2' }}</p>
+          </div>
+        </div>
+
+        <!-- Notification sent info -->
+        <div class="flex items-start gap-3 bg-blue-50 rounded-xl px-4 py-3 border border-blue-100">
+          <span class="material-symbols-outlined text-blue-500 text-xl flex-shrink-0 mt-0.5">notifications_active</span>
+          <div>
+            <p class="text-xs font-bold text-blue-700">Notification Sent!</p>
+            <p class="text-[11px] text-blue-600 mt-0.5 leading-relaxed">
+              SMS aur Email bheja gaya hai
+              <span *ngIf="contactPhone"> <strong>{{ contactPhone }}</strong></span>
+              <span *ngIf="contactEmail"> aur <strong>{{ contactEmail }}</strong></span>
+              pe booking details ke saath.
+            </p>
+          </div>
+        </div>
+
+        <!-- Validity -->
+        <div class="flex items-center gap-2 text-xs text-outline">
+          <span class="material-symbols-outlined text-sm">schedule</span>
+          <span>Token 24 ghante valid hai. Station pe dikhayein fuel lene ke liye.</span>
+        </div>
+
+        <!-- Auto-dismiss progress bar -->
+        <div class="h-1 w-full bg-surface-container-high rounded-full overflow-hidden">
+          <div class="h-full bg-[#22c55e] rounded-full popup-progress"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

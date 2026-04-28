@@ -1,0 +1,414 @@
+<!-- Bharat Kinetic — Inventory Management -->
+<div class="flex min-h-screen bg-surface text-on-surface font-body">
+
+  <!-- Sidenav -->
+  <aside class="h-screen w-64 hidden lg:flex flex-col bg-surface-container-low sticky top-0 p-4">
+    <div class="mb-8 px-4">
+      <span class="text-lg font-bold text-primary font-headline tracking-tighter">Bharat Kinetic</span>
+    </div>
+    <div class="flex items-center gap-3 px-4 py-4 mb-6 bg-surface-container-highest/50 rounded-xl">
+      <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-white">
+        <span class="material-symbols-outlined text-sm">person</span>
+      </div>
+      <div>
+        <p class="text-sm font-bold text-primary">{{ role === 'Admin' ? 'Administrator' : 'Fuel Dealer' }}</p>
+        <p class="text-[10px] text-outline uppercase tracking-wider">{{ role }}</p>
+      </div>
+    </div>
+    <nav class="flex-1 space-y-1">
+      <a (click)="goBack()" class="cursor-pointer text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg flex items-center gap-3 transition-all">
+        <span class="material-symbols-outlined">analytics</span><span class="text-sm">Command Center</span>
+      </a>
+      <a class="bg-white text-primary font-bold rounded-lg px-4 py-3 shadow-sm flex items-center gap-3">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">inventory_2</span><span class="text-sm">Inventory</span>
+      </a>
+      <a class="text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg flex items-center gap-3 transition-all cursor-pointer" *ngIf="role === 'Dealer'" (click)="navigate('/booking')">
+        <span class="material-symbols-outlined">qr_code_scanner</span><span class="text-sm">Token Portal</span>
+      </a>
+      <a (click)="scrollToDeliveryForm()" *ngIf="role === 'Dealer'" class="cursor-pointer text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg flex items-center gap-3 transition-all">
+        <span class="material-symbols-outlined">local_shipping</span><span class="text-sm">Tanker Delivery</span>
+      </a>
+      <a class="text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg flex items-center gap-3 transition-all">
+        <span class="material-symbols-outlined">support_agent</span><span class="text-sm">Support</span>
+      </a>
+    </nav>
+    <div class="mt-auto pt-4 border-t border-outline-variant/10">
+      <a (click)="goBack()" class="cursor-pointer text-outline px-4 py-3 flex items-center gap-3 transition-all hover:bg-surface-container-high rounded-lg">
+        <span class="material-symbols-outlined">arrow_back</span><span class="text-sm">Back</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col min-w-0">
+
+    <!-- Top Bar -->
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center px-6 py-4 shadow-sm">
+      <div class="flex items-center gap-3">
+        <button class="lg:hidden" (click)="goBack()"><span class="material-symbols-outlined">arrow_back</span></button>
+        <h2 class="text-xl font-black tracking-tighter text-primary font-headline uppercase">Inventory Management</h2>
+      </div>
+      <div class="flex items-center gap-4">
+        <button class="hidden md:flex items-center gap-2 px-4 py-2 border border-outline/20 rounded-lg text-sm font-bold text-primary hover:bg-surface-container-highest transition-colors">
+          <span class="material-symbols-outlined text-sm">download</span>Download Report
+        </button>
+        <app-notification-bell></app-notification-bell>
+        <button class="p-2 hover:bg-surface-container rounded-full transition-colors">
+          <span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Messages -->
+    <div class="max-w-7xl mx-auto w-full px-4 md:px-8 pt-4 space-y-3" *ngIf="addStockSuccess || addStockError">
+      <div *ngIf="addStockSuccess" class="flex items-center gap-3 bg-tertiary-fixed/20 border border-on-tertiary-container/20 text-on-tertiary-container rounded-lg px-4 py-3 text-sm font-medium">
+        <span class="material-symbols-outlined text-sm">check_circle</span>{{ addStockSuccess }}
+      </div>
+      <div *ngIf="addStockError" class="flex items-center gap-3 bg-error-container/30 border border-error/20 text-on-error-container rounded-lg px-4 py-3 text-sm font-medium">
+        <span class="material-symbols-outlined text-error text-sm">error_outline</span>{{ addStockError }}
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="p-4 md:p-8 lg:p-10 space-y-8 max-w-7xl mx-auto w-full">
+
+      <!-- Header Row -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <span class="text-xs font-bold text-secondary uppercase tracking-[0.2em] mb-2 block">Fuel Stock Overview</span>
+          <h1 class="text-3xl md:text-4xl font-black text-primary font-headline tracking-tighter leading-tight">
+            {{ role === 'Admin' ? 'Inventory Monitor' : 'Stock Management' }}
+          </h1>
+          <p class="text-on-surface-variant mt-1">{{ role === 'Admin' ? 'View-only — Admin monitoring mode.' : 'Track and manage fuel stock across your station.' }}</p>
+        </div>
+        <button *ngIf="role === 'Dealer'" (click)="addStock()" [disabled]="isLoading || !newStock.quantity || !newStock.pricePerLitre"
+          class="tonal-valley text-white px-8 py-3 rounded-xl font-bold flex items-center gap-3 shadow-lg hover:opacity-90 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed self-start md:self-auto">
+          <span *ngIf="isLoading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+          <span class="material-symbols-outlined" *ngIf="!isLoading">add_circle</span>
+          {{ isLoading ? 'Adding…' : 'Log New Stock' }}
+        </button>
+      </div>
+
+      <!-- 3 Fuel Level Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div *ngFor="let fuel of ['Petrol', 'Diesel', 'CNG']"
+          class="bg-surface-container-lowest p-8 rounded-2xl shadow-sm border border-outline-variant/5 space-y-6">
+          <div class="flex justify-between items-start">
+            <div>
+              <span class="text-xs text-outline font-bold uppercase tracking-widest">{{ fuel }}</span>
+              <p class="text-3xl font-black font-headline text-primary mt-1">
+                {{ (getStock(fuel) ? ($any(getStock(fuel))['quantity'] | number:'1.0-0') : '—') }}
+                <span class="text-sm font-normal text-on-surface-variant">{{ fuel === 'CNG' ? 'kg' : 'L' }}</span>
+              </p>
+            </div>
+            <span [class]="'text-[10px] font-bold px-3 py-1 rounded-full ' + getStatusBadge(fuel).cls">
+              {{ getStatusBadge(fuel).label }}
+            </span>
+          </div>
+          <!-- Visual fill bar -->
+          <div class="space-y-2">
+            <div class="h-3 w-full bg-surface-container-high rounded-full overflow-hidden">
+              <div class="h-full rounded-full relative overflow-hidden transition-all duration-700"
+                [style.width.%]="getFillPct(fuel)"
+                [class]="getFillColor(getFillPct(fuel))">
+                <div class="absolute inset-0 kinetic-shimmer"></div>
+              </div>
+            </div>
+            <div class="flex justify-between text-[10px] font-bold text-outline uppercase">
+              <span>0%</span>
+              <span>{{ getFillPct(fuel) }}% filled</span>
+              <span>100%</span>
+            </div>
+          </div>
+          <!-- Price + low stock alert -->
+          <div class="flex justify-between items-center">
+            <div>
+              <div class="text-xs text-outline mb-1">Price / {{ fuel === 'CNG' ? 'KG' : 'Litre' }}</div>
+              <div class="text-lg font-bold text-on-surface">
+                {{ getStock(fuel) ? '₹' + (($any(getStock(fuel))['pricePerLitre'] | number:'1.2-2')) : '—' }}
+              </div>
+            </div>
+            <div *ngIf="getFillPct(fuel) <= 15 && getFillPct(fuel) > 0" class="flex items-center gap-1 text-error animate-pulse text-xs font-bold">
+              <span class="material-symbols-outlined text-sm">warning</span>CRITICAL LOW
+            </div>
+            <div *ngIf="getFillPct(fuel) === 0" class="text-xs font-bold text-outline">No data</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Stock Form (Dealer only) -->
+      <div *ngIf="role === 'Dealer'" id="tanker-delivery-form" class="bg-surface-container-low rounded-2xl p-8 border border-outline-variant/10">
+        <h3 class="text-xl font-black font-headline text-primary mb-6">Log New Tanker Delivery</h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+          <div>
+            <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Fuel Type</label>
+            <select [(ngModel)]="newStock.fuelType" name="fuelType"
+              class="w-full px-4 py-3 bg-white rounded-xl border-0 ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary font-bold outline-none transition-all">
+              <option value="Petrol">Petrol</option>
+              <option value="Diesel">Diesel</option>
+              <option value="CNG">CNG</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Quantity ({{ newStock.fuelType === 'CNG' ? 'KG' : 'Litres' }})</label>
+            <input type="number" [(ngModel)]="newStock.quantity" name="qty" min="1" placeholder="0"
+              class="w-full px-4 py-3 bg-white rounded-xl border-0 ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary font-bold outline-none transition-all"/>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Price / {{ newStock.fuelType === 'CNG' ? 'KG' : 'Litre' }} (₹)</label>
+            <input type="number" [(ngModel)]="newStock.pricePerLitre" name="price" min="0" step="0.01" placeholder="0.00"
+              class="w-full px-4 py-3 bg-white rounded-xl border-0 ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary font-bold outline-none transition-all"/>
+          </div>
+          <div>
+            <button (click)="addStock()" [disabled]="isLoading || !newStock.quantity || !newStock.pricePerLitre"
+              class="w-full tonal-valley text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-md hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+              <span *ngIf="isLoading" class="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              <span class="material-symbols-outlined text-sm" *ngIf="!isLoading">add</span>
+              {{ isLoading ? 'Adding…' : 'Add Stock' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stock Detail Table -->
+      <div class="bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant/5 shadow-sm">
+        <div class="px-8 py-6 flex justify-between items-center border-b border-surface-container-high">
+          <h3 class="text-xl font-bold font-headline text-primary">On-Hand Stock Detail</h3>
+          <button (click)="loadStocks()" class="flex items-center gap-2 text-sm font-bold text-primary hover:underline">
+            <span class="material-symbols-outlined text-sm">refresh</span>Refresh
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse text-left">
+            <thead>
+              <tr class="bg-surface-container-low text-on-surface-variant text-[10px] uppercase font-black tracking-widest">
+                <th class="px-8 py-5">Fuel Type</th>
+                <th class="px-8 py-5">Quantity</th>
+                <th class="px-8 py-5">Price / Unit</th>
+                <th class="px-8 py-5">Status</th>
+                <th class="px-8 py-5">Low Stock</th>
+                <th class="px-8 py-5">Last Updated</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant/10">
+              <tr *ngFor="let row of pagedStocks" class="hover:bg-surface-container-low/50 transition-colors">
+                <td class="px-8 py-5">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-primary-container/10 flex items-center justify-center">
+                      <span class="material-symbols-outlined text-primary text-sm">
+                        {{ row['fuelType'] === 'CNG' ? 'eco' : row['fuelType'] === 'Diesel' ? 'oil_barrel' : 'local_gas_station' }}
+                      </span>
+                    </div>
+                    <span class="font-bold text-on-surface">{{ row['fuelType'] }}</span>
+                  </div>
+                </td>
+                <td class="px-8 py-5 font-bold font-headline text-on-surface">{{ $any(row)['quantity'] | number:'1.0-0' }} <span class="text-xs font-normal text-outline">{{ row['fuelType'] === 'CNG' ? 'kg' : 'L' }}</span></td>
+                <td class="px-8 py-5 font-medium text-on-surface">₹{{ $any(row)['pricePerLitre'] | number:'1.2-2' }}</td>
+                <td class="px-8 py-5">
+                  <span class="text-[10px] font-bold px-3 py-1 rounded-sm uppercase"
+                    [class.bg-tertiary-fixed]="row['status'] === 'Available'"
+                    [class.text-on-tertiary-fixed-variant]="row['status'] === 'Available'"
+                    [class.bg-error-container]="row['status'] !== 'Available'"
+                    [class.text-on-error-container]="row['status'] !== 'Available'">
+                    {{ row['status'] }}
+                  </span>
+                </td>
+                <td class="px-8 py-5">
+                  <div class="flex items-center gap-2" [class.text-error]="row['isLowStock']" [class.animate-pulse]="row['isLowStock']">
+                    <span class="material-symbols-outlined text-sm" *ngIf="row['isLowStock']">warning</span>
+                    <span class="text-sm font-bold">{{ row['isLowStock'] ? 'YES' : 'No' }}</span>
+                  </div>
+                </td>
+                <td class="px-8 py-5 text-xs text-on-surface-variant">{{ $any(row)['lastUpdated'] | date:'MMM d, h:mm a' }}</td>
+              </tr>
+              <tr *ngIf="stocks.length === 0">
+                <td colspan="6" class="px-8 py-12 text-center text-on-surface-variant text-sm">
+                  <div class="flex flex-col items-center gap-3">
+                    <span class="material-symbols-outlined text-outline text-3xl">inventory_2</span>
+                    <p>No stock records yet. Log your first tanker delivery above.</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <app-pagination [totalItems]="stocks.length" [pageSize]="stockPageSize" [currentPage]="stockPage" (pageChange)="stockPage=$event" class="px-6 border-t border-outline-variant/10 block"></app-pagination>
+      </div>
+
+      <!-- Stock Alert Banner (Dealer only) -->
+      <div *ngIf="stocks.length > 0 && role === 'Dealer'" class="tonal-valley rounded-2xl p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden relative">
+        <div class="absolute -right-6 -top-6 opacity-10 pointer-events-none">
+          <span class="material-symbols-outlined" style="font-size:160px;" >oil_barrel</span>
+        </div>
+        <div class="relative z-10">
+          <h3 class="text-xl font-bold text-white mb-1">Inventory Forecast</h3>
+          <p class="text-primary-fixed/70 text-sm max-w-md">Based on average daily consumption. Schedule tanker deliveries to prevent disruptions.</p>
+        </div>
+        <div class="flex flex-col gap-2 relative z-10">
+          <button (click)="openScheduleModal()" class="px-6 py-3 bg-white text-primary font-bold rounded-xl hover:bg-primary-fixed transition-colors text-sm">
+            Schedule Delivery
+          </button>
+          <button (click)="openForecastModal()" class="px-6 py-3 border border-white/30 text-white font-bold rounded-xl hover:bg-white/10 transition-colors text-sm">
+            View Forecast
+          </button>
+        </div>
+      </div>
+
+    </div>
+    <div class="h-20 lg:hidden"></div>
+  </main>
+
+  <!-- ===== SCHEDULE DELIVERY MODAL ===== -->
+  <div *ngIf="showScheduleModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 space-y-6">
+      <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-black font-headline text-primary">Schedule Delivery</h2>
+        <button (click)="closeScheduleModal()" class="p-2 hover:bg-surface-container rounded-full transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div *ngIf="scheduleSuccess" class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3 text-sm font-medium">
+        <span class="material-symbols-outlined text-sm">check_circle</span>{{ scheduleSuccess }}
+      </div>
+      <div *ngIf="scheduleError" class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-800 rounded-lg px-4 py-3 text-sm font-medium">
+        <span class="material-symbols-outlined text-sm">error</span>{{ scheduleError }}
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Fuel Type</label>
+          <select [(ngModel)]="scheduleForm.fuelType" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none font-bold">
+            <option value="Petrol">Petrol</option>
+            <option value="Diesel">Diesel</option>
+            <option value="CNG">CNG</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Quantity (L)</label>
+          <input type="number" [(ngModel)]="scheduleForm.quantity" min="1" placeholder="e.g. 5000"
+            class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none font-bold"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Scheduled Date</label>
+          <input type="date" [(ngModel)]="scheduleForm.scheduledDate"
+            class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none font-bold"/>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Supplier Name</label>
+          <input type="text" [(ngModel)]="scheduleForm.supplierName" placeholder="e.g. HPCL"
+            class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none font-bold"/>
+        </div>
+        <div class="col-span-2">
+          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Notes (optional)</label>
+          <input type="text" [(ngModel)]="scheduleForm.notes" placeholder="Any special instructions..."
+            class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none"/>
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button (click)="closeScheduleModal()" class="flex-1 px-6 py-3 border border-outline-variant/30 rounded-xl font-bold text-on-surface-variant hover:bg-surface-container transition-colors">
+          Cancel
+        </button>
+        <button (click)="saveScheduledDelivery()" class="flex-1 tonal-valley text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-all">
+          Schedule Delivery
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FORECAST MODAL ===== -->
+  <div *ngIf="showForecastModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-8 space-y-6">
+      <div class="flex justify-between items-center">
+        <h2 class="text-2xl font-black font-headline text-primary">Inventory Forecast</h2>
+        <button (click)="closeForecastModal()" class="p-2 hover:bg-surface-container rounded-full transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <p class="text-sm text-on-surface-variant">Based on average daily consumption estimates. Actual usage may vary.</p>
+
+      <!-- Forecast cards per fuel type -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div *ngFor="let fuel of ['Petrol', 'Diesel', 'CNG']" class="bg-surface-container-low rounded-xl p-5 space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="font-black text-primary">{{ fuel }}</span>
+            <span [class]="'text-xs font-bold px-2 py-1 rounded-full bg-surface-container-high ' + getForecastStatus(getDaysRemaining(fuel)).cls">
+              {{ getForecastStatus(getDaysRemaining(fuel)).label }}
+            </span>
+          </div>
+          <div>
+            <p class="text-3xl font-black font-headline text-on-surface">{{ getDaysRemaining(fuel) }}</p>
+            <p class="text-xs text-on-surface-variant">days remaining</p>
+          </div>
+          <div class="h-2 bg-surface-container-high rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all"
+              [style.width.%]="Math.min(100, getDaysRemaining(fuel) * 5)"
+              [class]="getDaysRemaining(fuel) <= 3 ? 'bg-error' : getDaysRemaining(fuel) <= 7 ? 'bg-secondary' : 'bg-on-tertiary-container'">
+            </div>
+          </div>
+          <div class="text-xs text-on-surface-variant space-y-1">
+            <div class="flex justify-between">
+              <span>Current Stock</span>
+              <span class="font-bold">{{ getStock(fuel) ? ($any(getStock(fuel))['quantity'] | number:'1.0-0') : '0' }} L</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Avg Daily Use</span>
+              <span class="font-bold">{{ fuel === 'CNG' ? '200' : '500' }} L/day</span>
+            </div>
+            <div class="flex justify-between">
+              <span>Reorder By</span>
+              <span class="font-bold text-secondary">{{ getReorderDate(fuel) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scheduled Deliveries -->
+      <div *ngIf="scheduledDeliveries.length > 0">
+        <h3 class="text-lg font-bold font-headline text-primary mb-3">Upcoming Scheduled Deliveries</h3>
+        <div class="space-y-2">
+          <div *ngFor="let d of scheduledDeliveries" class="flex items-center justify-between bg-surface-container-low rounded-xl px-4 py-3">
+            <div class="flex items-center gap-3">
+              <span class="material-symbols-outlined text-primary">local_shipping</span>
+              <div>
+                <p class="font-bold text-sm">{{ d.fuelType }} — {{ d.quantity | number:'1.0-0' }} L</p>
+                <p class="text-xs text-on-surface-variant">{{ d.scheduledDate }} {{ d.supplierName ? '· ' + d.supplierName : '' }}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold px-2 py-1 bg-blue-50 text-blue-700 rounded-full">{{ d.status }}</span>
+              <button (click)="cancelScheduledDelivery(d.id)" class="text-error hover:bg-error-container/20 p-1 rounded-lg transition-colors">
+                <span class="material-symbols-outlined text-sm">delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div *ngIf="scheduledDeliveries.length === 0" class="text-center py-4 text-sm text-on-surface-variant">
+        No scheduled deliveries. Use "Schedule Delivery" to plan ahead.
+      </div>
+
+      <button (click)="closeForecastModal()" class="w-full tonal-valley text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-all">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="fixed bottom-0 w-full z-50 lg:hidden bg-white border-t border-outline-variant/20 shadow-[0_-4px_12px_rgba(0,0,0,0.05)] flex justify-around items-center h-16 px-4 font-label text-[10px] uppercase font-bold tracking-widest">
+    <a (click)="goBack()" class="cursor-pointer flex flex-col items-center text-outline">
+      <span class="material-symbols-outlined">home</span><span>Home</span>
+    </a>
+    <a class="flex flex-col items-center text-primary scale-110">
+      <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">inventory_2</span><span>Stock</span>
+    </a>
+    <a class="flex flex-col items-center text-outline">
+      <span class="material-symbols-outlined">qr_code_scanner</span><span>Scan</span>
+    </a>
+    <a class="flex flex-col items-center text-outline">
+      <span class="material-symbols-outlined">person</span><span>Account</span>
+    </a>
+  </nav>
+</div>

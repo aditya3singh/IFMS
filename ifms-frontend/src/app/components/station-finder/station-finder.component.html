@@ -1,0 +1,58 @@
+<div class="min-h-screen bg-surface text-on-surface font-body">
+  <header class="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-50 flex justify-between items-center px-6 py-4">
+    <div class="flex items-center gap-3">
+      <button (click)="goBack()" class="p-2 rounded-lg hover:bg-surface-container-high transition-colors">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <h1 class="text-2xl font-black text-primary font-headline tracking-tight">Station Finder</h1>
+    </div>
+    <span class="text-xs text-outline font-bold">{{ stations.length }} stations</span>
+  </header>
+
+  <main class="p-6 lg:p-10 max-w-6xl mx-auto space-y-6">
+
+    <!-- Search -->
+    <div class="relative">
+      <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+      <input [(ngModel)]="searchQuery" (ngModelChange)="stationPage=1" placeholder="Search by station name, city or state..."
+        class="w-full pl-9 pr-4 py-3 bg-white rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm"/>
+    </div>
+
+    <div *ngIf="loading" class="text-center py-8 text-on-surface-variant">
+      <div class="inline-block w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mb-2"></div>
+      <p>Loading stations…</p>
+    </div>
+    <p *ngIf="error && !loading" class="text-error text-sm">{{ error }}</p>
+
+    <div *ngIf="!loading">
+      <!-- Results info -->
+      <p class="text-xs text-outline mb-3 font-medium">
+        Showing {{ pagedStations.length }} of {{ filteredStations.length }} stations
+        <span *ngIf="searchQuery"> matching "{{ searchQuery }}"</span>
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div *ngFor="let s of pagedStations" class="bg-surface-container-lowest rounded-xl p-5 border border-outline-variant/20 flex items-center justify-between gap-4 hover:shadow-sm transition-shadow">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-primary text-sm">local_gas_station</span>
+            </div>
+            <div>
+              <h3 class="font-bold text-primary">{{ s.name }}</h3>
+              <p class="text-xs text-on-surface-variant">{{ s.city }}, {{ s.state }}</p>
+            </div>
+          </div>
+          <button (click)="bookAtStation(s.id)" class="tonal-valley text-white text-sm font-bold px-4 py-2 rounded-lg shrink-0">
+            Book
+          </button>
+        </div>
+        <div *ngIf="filteredStations.length === 0" class="col-span-2 text-center py-12 text-on-surface-variant">
+          <span class="material-symbols-outlined text-3xl text-outline block mb-2">search_off</span>
+          <p class="text-sm">No stations found for "{{ searchQuery }}"</p>
+        </div>
+      </div>
+
+      <app-pagination [totalItems]="filteredStations.length" [pageSize]="stationPageSize" [currentPage]="stationPage" (pageChange)="stationPage=$event" class="mt-4 block"></app-pagination>
+    </div>
+  </main>
+</div>

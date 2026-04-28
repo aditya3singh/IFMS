@@ -1,0 +1,10 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Routed page sits after <router-outlet />; let it fill space so footer stays at bottom */
+:host > router-outlet + * {
+  flex: 1 0 auto;
+}

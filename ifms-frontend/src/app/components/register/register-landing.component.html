@@ -1,0 +1,48 @@
+<main class="min-h-screen flex flex-col md:flex-row bg-surface text-on-surface font-body">
+  <section class="hidden lg:flex w-1/2 kinetic-gradient relative overflow-hidden flex-col justify-between p-16">
+    <div class="relative z-10">
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 bg-secondary-container rounded-lg flex items-center justify-center">
+          <span class="material-symbols-outlined text-white" style="font-variation-settings:'FILL' 1;">factory</span>
+        </div>
+        <h1 class="font-headline text-2xl font-extrabold tracking-tighter text-white">FuelOps Industrial</h1>
+      </div>
+      <h2 class="font-headline text-5xl font-bold leading-tight text-white tracking-tight">Powering Bharat Kinetic movement.</h2>
+      <p class="text-primary-fixed mt-4 max-w-lg">Create your account for industrial fuel operations and booking workflows.</p>
+    </div>
+  </section>
+
+  <section class="flex-1 flex flex-col justify-center items-center p-8 md:p-16 lg:p-24">
+    <div class="w-full max-w-2xl">
+      <a routerLink="/login" class="inline-flex items-center gap-2 text-sm font-bold text-primary mb-8 hover:underline">
+        <span class="material-symbols-outlined text-sm">arrow_back</span>Back to sign in
+      </a>
+      <div class="mb-10">
+        <h2 class="font-headline text-3xl font-extrabold text-on-surface tracking-tight mb-2">Choose Account Type</h2>
+        <p class="text-on-surface-variant">Admin accounts are operator-created. Choose Customer or Dealer to continue.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div *ngFor="let tile of tiles"
+          class="bg-surface-container-lowest rounded-2xl p-6 shadow-sm border border-outline-variant/20 cursor-pointer hover:shadow-lg transition-all"
+          tabindex="0" role="button"
+          (click)="continueAs(tile.roleId)"
+          (keydown.enter)="continueAs(tile.roleId)"
+          (keydown.space)="$event.preventDefault(); continueAs(tile.roleId)">
+          <div class="w-12 h-12 rounded-xl bg-primary-fixed flex items-center justify-center mb-4">
+            <span class="material-symbols-outlined text-primary">{{ tile.icon }}</span>
+          </div>
+          <h3 class="text-xl font-bold font-headline text-primary mb-2">{{ tile.headline }}</h3>
+          <p class="text-sm text-on-surface-variant mb-6">{{ tile.description }}</p>
+          <button (click)="$event.stopPropagation(); continueAs(tile.roleId)" class="w-full tonal-valley text-white py-3 rounded-lg font-bold text-sm flex items-center justify-center gap-2">
+            Continue <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-8 text-sm text-on-surface-variant">
+        Already have an account? <a routerLink="/login" class="text-primary font-bold hover:underline">Sign in</a>
+      </div>
+    </div>
+  </section>
+</main>

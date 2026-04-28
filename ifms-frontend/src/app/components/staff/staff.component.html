@@ -1,0 +1,243 @@
+<div class="flex min-h-screen bg-surface text-on-surface font-body">
+
+  <!-- Sidebar -->
+  <aside class="h-screen w-64 hidden lg:flex flex-col bg-surface-container-low sticky top-0 p-4">
+    <div class="mb-8 px-4">
+      <span class="text-lg font-bold text-primary font-headline tracking-tighter">Bharat Kinetic</span>
+    </div>
+    <nav class="flex-1 space-y-1">
+      <a (click)="goBack()" class="cursor-pointer text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg flex items-center gap-3 transition-all">
+        <span class="material-symbols-outlined">analytics</span><span class="text-sm">Command Center</span>
+      </a>
+      <a (click)="navigate('/inventory')" class="cursor-pointer text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg flex items-center gap-3 transition-all">
+        <span class="material-symbols-outlined">inventory_2</span><span class="text-sm">Inventory</span>
+      </a>
+      <a (click)="navigate('/sales')" class="cursor-pointer text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg flex items-center gap-3 transition-all">
+        <span class="material-symbols-outlined">point_of_sale</span><span class="text-sm">Sales</span>
+      </a>
+      <a class="bg-white text-primary font-bold rounded-lg px-4 py-3 shadow-sm flex items-center gap-3">
+        <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1;">groups</span><span class="text-sm">Staff Mgmt</span>
+      </a>
+      <a (click)="navigate('/feedback')" class="cursor-pointer text-outline px-4 py-3 hover:bg-surface-container-high rounded-lg flex items-center gap-3 transition-all">
+        <span class="material-symbols-outlined">rate_review</span><span class="text-sm">Feedback</span>
+      </a>
+    </nav>
+    <div class="mt-auto pt-4 border-t border-outline-variant/10">
+      <a (click)="goBack()" class="cursor-pointer text-outline px-4 py-3 flex items-center gap-3 hover:bg-surface-container-high rounded-lg transition-all">
+        <span class="material-symbols-outlined">arrow_back</span><span class="text-sm">Back</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col min-w-0">
+
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-md sticky top-0 z-50 flex justify-between items-center px-6 py-4 shadow-sm">
+      <div class="flex items-center gap-3">
+        <button class="lg:hidden" (click)="goBack()"><span class="material-symbols-outlined">arrow_back</span></button>
+        <h2 class="text-xl font-black tracking-tighter text-primary font-headline uppercase">Staff Management</h2>
+      </div>
+      <button (click)="openAddModal()" class="tonal-valley text-white px-5 py-2 rounded-lg font-bold flex items-center gap-2 text-sm hover:opacity-90 transition-all">
+        <span class="material-symbols-outlined text-sm">person_add</span>Add Staff
+      </button>
+      <app-notification-bell></app-notification-bell>
+    </header>
+
+    <div class="p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
+
+      <!-- Success message -->
+      <div *ngIf="successMsg" class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3 text-sm font-medium">
+        <span class="material-symbols-outlined text-sm">check_circle</span>{{ successMsg }}
+      </div>
+
+      <!-- Stats -->
+      <div class="grid grid-cols-3 gap-4">
+        <div class="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant/10 text-center cursor-pointer" (click)="filterStatus='All'">
+          <p class="text-3xl font-black font-headline text-primary">{{ staffList.length }}</p>
+          <p class="text-xs font-bold text-outline uppercase tracking-widest mt-1">Total Staff</p>
+        </div>
+        <div class="bg-green-50 rounded-2xl p-5 border border-green-100 text-center cursor-pointer" (click)="filterStatus='Active'">
+          <p class="text-3xl font-black font-headline text-green-700">{{ activeCount }}</p>
+          <p class="text-xs font-bold text-green-600 uppercase tracking-widest mt-1">On Duty</p>
+        </div>
+        <div class="bg-yellow-50 rounded-2xl p-5 border border-yellow-100 text-center cursor-pointer" (click)="filterStatus='On Leave'">
+          <p class="text-3xl font-black font-headline text-yellow-700">{{ onLeaveCount }}</p>
+          <p class="text-xs font-bold text-yellow-600 uppercase tracking-widest mt-1">On Leave</p>
+        </div>
+      </div>
+
+      <!-- Search + Filter -->
+      <div class="flex flex-col md:flex-row gap-3">
+        <div class="relative flex-1">
+          <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm">search</span>
+          <input [(ngModel)]="searchQuery" placeholder="Search by name or role..."
+            class="w-full pl-9 pr-4 py-3 bg-white rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm"/>
+        </div>
+        <select [(ngModel)]="filterStatus" class="px-4 py-3 bg-white rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm font-bold">
+          <option value="All">All Status</option>
+          <option value="Active">Active</option>
+          <option value="Off Duty">Off Duty</option>
+          <option value="On Leave">On Leave</option>
+        </select>
+      </div>
+
+      <!-- Staff Table -->
+      <div class="bg-surface-container-lowest rounded-2xl overflow-hidden border border-outline-variant/10 shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead class="bg-surface-container-low text-on-surface-variant text-[10px] font-black uppercase tracking-widest">
+              <tr>
+                <th class="px-6 py-4">Name</th>
+                <th class="px-6 py-4">Role</th>
+                <th class="px-6 py-4">Shift</th>
+                <th class="px-6 py-4">Contact</th>
+                <th class="px-6 py-4">Status</th>
+                <th class="px-6 py-4">Joined</th>
+                <th class="px-6 py-4">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-outline-variant/10">
+              <tr *ngFor="let s of pagedStaff" class="hover:bg-surface-container-low/50 transition-colors">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-full bg-primary-container/20 flex items-center justify-center font-black text-primary text-sm">
+                      {{ s.name.charAt(0) }}
+                    </div>
+                    <div>
+                      <p class="font-bold text-sm">{{ s.name }}</p>
+                      <p class="text-xs text-outline">{{ s.email }}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm font-medium">{{ s.role }}</td>
+                <td class="px-6 py-4 text-xs text-on-surface-variant">{{ s.shift }}</td>
+                <td class="px-6 py-4 text-sm">{{ s.phone }}</td>
+                <td class="px-6 py-4">
+                  <select [ngModel]="s.status" (ngModelChange)="updateStatus(s.id, $event)"
+                    [class]="'text-xs font-bold px-2 py-1 rounded-full border-0 outline-none cursor-pointer ' + getStatusCls(s.status)">
+                    <option value="Active">Active</option>
+                    <option value="Off Duty">Off Duty</option>
+                    <option value="On Leave">On Leave</option>
+                  </select>
+                </td>
+                <td class="px-6 py-4 text-xs text-outline">{{ s.joinDate | date:'dd MMM yyyy' }}</td>
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-2">
+                    <button (click)="openEditModal(s)" class="p-1.5 hover:bg-primary/10 rounded-lg transition-colors text-primary">
+                      <span class="material-symbols-outlined text-sm">edit</span>
+                    </button>
+                    <button (click)="deleteStaff(s.id)" class="p-1.5 hover:bg-error/10 rounded-lg transition-colors text-error">
+                      <span class="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="filteredStaff.length === 0">
+                <td colspan="7" class="px-6 py-12 text-center text-sm text-on-surface-variant">
+                  <span class="material-symbols-outlined text-3xl text-outline block mb-2">groups</span>
+                  No staff found.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <app-pagination [totalItems]="filteredStaff.length" [pageSize]="staffPageSize" [currentPage]="staffPage" (pageChange)="staffPage=$event" class="px-4 border-t border-outline-variant/10 block"></app-pagination>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ADD MODAL -->
+<div *ngIf="showAddModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 space-y-5">
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-black font-headline text-primary">Add Staff Member</h2>
+      <button (click)="showAddModal=false" class="p-2 hover:bg-surface-container rounded-full"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div *ngIf="errorMsg" class="text-sm text-error bg-error-container/20 px-4 py-2 rounded-lg">{{ errorMsg }}</div>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="col-span-2">
+        <label class="block text-xs font-bold text-outline uppercase tracking-widest mb-1">Full Name *</label>
+        <input [(ngModel)]="newStaff.name" placeholder="e.g. Ramesh Kumar" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none"/>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-outline uppercase tracking-widest mb-1">Role</label>
+        <select [(ngModel)]="newStaff.role" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none font-bold">
+          <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-outline uppercase tracking-widest mb-1">Shift</label>
+        <select [(ngModel)]="newStaff.shift" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none font-bold">
+          <option *ngFor="let sh of shifts" [value]="sh">{{ sh }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-outline uppercase tracking-widest mb-1">Phone *</label>
+        <input [(ngModel)]="newStaff.phone" placeholder="9876543210" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none"/>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-outline uppercase tracking-widest mb-1">Email</label>
+        <input [(ngModel)]="newStaff.email" placeholder="staff@station.com" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none"/>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-outline uppercase tracking-widest mb-1">Join Date</label>
+        <input type="date" [(ngModel)]="newStaff.joinDate" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none"/>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-outline uppercase tracking-widest mb-1">Status</label>
+        <select [(ngModel)]="newStaff.status" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none font-bold">
+          <option *ngFor="let st of statuses" [value]="st">{{ st }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-3 pt-2">
+      <button (click)="showAddModal=false" class="flex-1 px-6 py-3 border border-outline-variant/30 rounded-xl font-bold text-on-surface-variant hover:bg-surface-container transition-colors">Cancel</button>
+      <button (click)="addStaff()" class="flex-1 tonal-valley text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-all">Add Staff</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div *ngIf="showEditModal && selectedStaff" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 space-y-5">
+    <div class="flex justify-between items-center">
+      <h2 class="text-xl font-black font-headline text-primary">Edit Staff Member</h2>
+      <button (click)="showEditModal=false" class="p-2 hover:bg-surface-container rounded-full"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div class="col-span-2">
+        <label class="block text-xs font-bold text-outline uppercase tracking-widest mb-1">Full Name</label>
+        <input [(ngModel)]="selectedStaff.name" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none"/>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-outline uppercase tracking-widest mb-1">Role</label>
+        <select [(ngModel)]="selectedStaff.role" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none font-bold">
+          <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-outline uppercase tracking-widest mb-1">Shift</label>
+        <select [(ngModel)]="selectedStaff.shift" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none font-bold">
+          <option *ngFor="let sh of shifts" [value]="sh">{{ sh }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-outline uppercase tracking-widest mb-1">Phone</label>
+        <input [(ngModel)]="selectedStaff.phone" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none"/>
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-outline uppercase tracking-widest mb-1">Status</label>
+        <select [(ngModel)]="selectedStaff.status" class="w-full px-4 py-3 bg-surface-container-low rounded-xl ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none font-bold">
+          <option *ngFor="let st of statuses" [value]="st">{{ st }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="flex gap-3 pt-2">
+      <button (click)="showEditModal=false" class="flex-1 px-6 py-3 border border-outline-variant/30 rounded-xl font-bold text-on-surface-variant hover:bg-surface-container transition-colors">Cancel</button>
+      <button (click)="saveEdit()" class="flex-1 tonal-valley text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-all">Save Changes</button>
+    </div>
+  </div>
+</div>

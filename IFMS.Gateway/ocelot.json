@@ -1,0 +1,126 @@
+{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/Auth/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "identity-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/auth/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Auth",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "identity-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/auth",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Inventory/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "inventory-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/inventory/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Inventory",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "inventory-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/inventory",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Sales/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "sales-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/sales/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Sales",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "sales-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/sales",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/complaints/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "sales-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/complaints/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/complaints",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "sales-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/complaints",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Admin/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "admin-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/admin/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Stations/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "station-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/stations/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Stations",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "station-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/stations",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/notify/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "notification-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/notify/{everything}",
+      "UpstreamHttpMethod": ["POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "notification-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/notifications/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "notification-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/notifications",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/booking/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "booking-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/booking/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/booking",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "booking-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/booking",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/graphql",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "graphql-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/graphql",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5010"
+  }
+}

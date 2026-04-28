@@ -1,0 +1,92 @@
+# ─── .NET Build Output ────────────────────────────────────────────────────────
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+*.swp
+*.tmp
+
+# ─── .NET Publish ─────────────────────────────────────────────────────────────
+[Pp]ublish/
+[Pp]ublish[Oo]utput/
+
+# ─── NuGet ────────────────────────────────────────────────────────────────────
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ─── EF Core Migrations (keep source, ignore snapshots if needed) ─────────────
+# Uncomment below ONLY if you want to regenerate migrations from scratch:
+# */Migrations/
+
+# ─── Secrets & Credentials ────────────────────────────────────────────────────
+# appsettings.Development.json may contain local secrets
+appsettings.Development.json
+appsettings.Local.json
+secrets.json
+*.pfx
+*.p12
+.env
+.env.*
+
+# ─── Angular / Node ───────────────────────────────────────────────────────────
+ifms-frontend/node_modules/
+ifms-frontend/dist/
+ifms-frontend/.angular/
+ifms-frontend/.angular/cache/
+ifms-frontend/coverage/
+ifms-frontend/*.js.map
+
+# ─── macOS ────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# ─── Windows ──────────────────────────────────────────────────────────────────
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ─── Docker ───────────────────────────────────────────────────────────────────
+# Keep docker-compose.yml but ignore override files with local secrets
+docker-compose.override.yml
+docker-compose.local.yml
+
+# ─── Logs ─────────────────────────────────────────────────────────────────────
+logs/
+*.log
+*.log.*
+
+# ─── Test Results ─────────────────────────────────────────────────────────────
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# ─── Rider / JetBrains ────────────────────────────────────────────────────────
+.idea/
+*.iml
+
+# ─── VS Code ──────────────────────────────────────────────────────────────────
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+# Keep .vscode/extensions.json if you want to share recommended extensions
+
+# ─── Temp / scratch files ─────────────────────────────────────────────────────
+apply-complaints-migration.csx
+seed-migrations.sql
+fix-tokencode-length.sql
+fix-dealer-assignment.sql
+insert-missing-transactions.sql

@@ -1,0 +1,254 @@
+services:
+  sqlserver:
+    # NOTE (Apple Silicon): SQL Server 2022 linux image is amd64-only and runs via emulation on arm64.
+    # Azure SQL Edge is multi-arch and runs natively on arm64, avoiding emulation warnings.
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    container_name: ifms-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Admin@12345"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - ifms_sqlserver_data:/var/opt/mssql
+      - ./database:/database:ro
+    healthcheck:
+      # SQL Edge image doesn't include sqlcmd by default, so we use a TCP readiness check.
+      test: ["CMD-SHELL", "bash -lc '</dev/tcp/localhost/1433'"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: ifms-redis
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: ifms-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ifms
+      RABBITMQ_DEFAULT_PASS: ifms@12345
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI → http://localhost:15672
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  identity-api:
+    build:
+      context: .
+      dockerfile: IFMS.Identity.API/Dockerfile
+    container_name: ifms-identity-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=IFMS_IdentityDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      Jwt__Key: IFMS_SuperSecretKey_2024_MustBe32Chars!!
+      Jwt__Issuer: IFMS.Identity
+      Jwt__Audience: IFMS.Client
+      Auth__AllowedSelfRegistrationRoles__0: Customer
+      Auth__AllowedSelfRegistrationRoles__1: Dealer
+      Auth__AllowedSelfRegistrationRoles__2: Admin
+      Auth__NotificationBaseUrl: http://notification-api:8080
+      Auth__InternalNotifyKey: dev-ifms-internal-otp-key
+      Auth__OtpExpiryMinutes: "10"
+    ports:
+      - "5001:8080"
+
+  station-api:
+    build:
+      context: .
+      dockerfile: IFMS.Station.API/Dockerfile
+    container_name: ifms-station-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=IFMS_StationDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      Jwt__Key: IFMS_SuperSecretKey_2024_MustBe32Chars!!
+      Jwt__Issuer: IFMS.Identity
+      Jwt__Audience: IFMS.Client
+    ports:
+      - "5006:8080"
+
+  inventory-api:
+    build:
+      context: .
+      dockerfile: IFMS.Inventory.API/Dockerfile
+    container_name: ifms-inventory-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=IFMS_InventoryDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      ConnectionStrings__StationConnection: Server=sqlserver,1433;Database=IFMS_StationDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__User: ifms
+      RabbitMQ__Pass: ifms@12345
+      Jwt__Key: IFMS_SuperSecretKey_2024_MustBe32Chars!!
+      Jwt__Issuer: IFMS.Identity
+      Jwt__Audience: IFMS.Client
+    ports:
+      - "5002:8080"
+
+  sales-api:
+    build:
+      context: .
+      dockerfile: IFMS.Sales.API/Dockerfile
+    container_name: ifms-sales-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      inventory-api:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=IFMS_SalesDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      ConnectionStrings__StationConnection: Server=sqlserver,1433;Database=IFMS_StationDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      Services__InventoryAPI: http://inventory-api:8080
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__User: ifms
+      RabbitMQ__Pass: ifms@12345
+      Jwt__Key: IFMS_SuperSecretKey_2024_MustBe32Chars!!
+      Jwt__Issuer: IFMS.Identity
+      Jwt__Audience: IFMS.Client
+    ports:
+      - "5003:8080"
+
+  booking-api:
+    build:
+      context: .
+      dockerfile: IFMS.Booking.API/Dockerfile
+    container_name: ifms-booking-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=IFMS_BookingDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      ConnectionStrings__StationConnection: Server=sqlserver,1433;Database=IFMS_StationDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      Redis__ConnectionString: redis:6379
+      Services__SalesApiUrl: http://sales-api:8080
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__User: ifms
+      RabbitMQ__Pass: ifms@12345
+      Booking__RequireKycVerification: "false"
+      Jwt__Key: IFMS_SuperSecretKey_2024_MustBe32Chars!!
+      Jwt__Issuer: IFMS.Identity
+      Jwt__Audience: IFMS.Client
+    ports:
+      - "5007:8080"
+
+  admin-api:
+    build:
+      context: .
+      dockerfile: IFMS.Admin.API/Dockerfile
+    container_name: ifms-admin-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Server=sqlserver,1433;Database=IFMS_SalesDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      ConnectionStrings__StationConnection: Server=sqlserver,1433;Database=IFMS_StationDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      ConnectionStrings__BookingConnection: Server=sqlserver,1433;Database=IFMS_BookingDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      Jwt__Key: IFMS_SuperSecretKey_2024_MustBe32Chars!!
+      Jwt__Issuer: IFMS.Identity
+      Jwt__Audience: IFMS.Client
+    ports:
+      - "5004:8080"
+
+  notification-api:
+    build:
+      context: .
+      dockerfile: IFMS.Notification.API/Dockerfile
+    container_name: ifms-notification-api
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      Jwt__Key: IFMS_SuperSecretKey_2024_MustBe32Chars!!
+      Jwt__Issuer: IFMS.Identity
+      Jwt__Audience: IFMS.Client
+      Twilio__AccountSid: YOUR_TWILIO_ACCOUNT_SID
+      Twilio__AuthToken: YOUR_TWILIO_AUTH_TOKEN
+      Twilio__FromPhone: "YOUR_TWILIO_PHONE_NUMBER"
+      Gmail__User: YOUR_GMAIL_ADDRESS
+      Gmail__AppPassword: YOUR_GMAIL_APP_PASSWORD
+      InternalApiKey: dev-ifms-internal-otp-key
+      RabbitMQ__Host: rabbitmq
+      RabbitMQ__User: ifms
+      RabbitMQ__Pass: ifms@12345
+    ports:
+      - "5005:8080"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: IFMS.Gateway/Dockerfile
+    container_name: ifms-gateway
+    depends_on:
+      identity-api:
+        condition: service_started
+      station-api:
+        condition: service_started
+      inventory-api:
+        condition: service_started
+      sales-api:
+        condition: service_started
+      booking-api:
+        condition: service_started
+      admin-api:
+        condition: service_started
+      notification-api:
+        condition: service_started
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      Jwt__Key: IFMS_SuperSecretKey_2024_MustBe32Chars!!
+      Jwt__Issuer: IFMS.Identity
+      Jwt__Audience: IFMS.Client
+    ports:
+      - "5010:8080"
+
+  graphql-api:
+    build:
+      context: .
+      dockerfile: IFMS.GraphQL.API/Dockerfile
+    container_name: ifms-graphql-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__BookingConnection: Server=sqlserver,1433;Database=IFMS_BookingDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      ConnectionStrings__SalesConnection: Server=sqlserver,1433;Database=IFMS_SalesDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      ConnectionStrings__InventoryConnection: Server=sqlserver,1433;Database=IFMS_InventoryDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      ConnectionStrings__StationConnection: Server=sqlserver,1433;Database=IFMS_StationDB;User Id=sa;Password=Admin@12345;TrustServerCertificate=True
+      Jwt__Key: IFMS_SuperSecretKey_2024_MustBe32Chars!!
+      Jwt__Issuer: IFMS.Identity
+      Jwt__Audience: IFMS.Client
+    ports:
+      - "5011:8080"
+
+volumes:
+  ifms_sqlserver_data:
