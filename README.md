@@ -130,18 +130,89 @@ Open **http://localhost:4200**
 ## Project Structure
 
 ```
-IFMS/
-├── IFMS.Identity.*          # Auth, users, OTP
-├── IFMS.Booking.*           # Fuel bookings, tokens, KYC
-├── IFMS.Sales.*             # Transactions, complaints
-├── IFMS.Inventory.*         # Fuel stock management
-├── IFMS.Station.*           # Station & dealer management
-├── IFMS.Admin.*             # Reports, fraud monitoring
-├── IFMS.Notification.*      # SMS, Email, in-app alerts
-├── IFMS.GraphQL.API/        # GraphQL query layer
-├── IFMS.Messaging/          # Shared RabbitMQ event contracts
-├── IFMS.Gateway/            # Ocelot API gateway
-├── ifms-frontend/           # Angular 17 frontend
-├── database/                # SQL schema diagrams
-└── docker-compose.yml       # Full stack orchestration
+📂 IFMS Platform Repository
+│
+├── 🌐 Frontend
+│   └── ifms-frontend/                    # Angular 17 SPA — port 4200
+│
+├── 🚪 Gateways & Aggregators
+│   ├── IFMS.Gateway/                     # API Gateway (Ocelot) — port 5010
+│   └── IFMS.GraphQL.API/                 # GraphQL Aggregation Layer — port 5011
+│
+├── ⚙️ Core Microservices
+│   │
+│   ├── Admin/
+│   │   ├── IFMS.Admin.API                # Reports, fraud monitor — port 5004
+│   │   ├── IFMS.Admin.Application
+│   │   └── IFMS.Admin.Infrastructure
+│   │
+│   ├── Booking/
+│   │   ├── IFMS.Booking.API              # Bookings, KYC, tokens — port 5007
+│   │   ├── IFMS.Booking.Application
+│   │   ├── IFMS.Booking.Domain
+│   │   ├── IFMS.Booking.Infrastructure   # EF Core, Redis, RabbitMQ publisher
+│   │   └── IFMS.Booking.Tests
+│   │
+│   ├── Identity/
+│   │   ├── IFMS.Identity.API             # Auth, users, OTP — port 5001
+│   │   ├── IFMS.Identity.Application
+│   │   ├── IFMS.Identity.Domain
+│   │   ├── IFMS.Identity.Infrastructure  # JWT, BCrypt, OTP delivery
+│   │   └── IFMS.Identity.Tests
+│   │
+│   ├── Inventory/
+│   │   ├── IFMS.Inventory.API            # Fuel stock management — port 5002
+│   │   ├── IFMS.Inventory.Application
+│   │   ├── IFMS.Inventory.Domain
+│   │   ├── IFMS.Inventory.Infrastructure # EF Core, RabbitMQ publisher
+│   │   └── IFMS.Inventory.Tests
+│   │
+│   ├── Notification/
+│   │   ├── IFMS.Notification.API         # Twilio SMS, Gmail, in-app — port 5005
+│   │   │   ├── Consumers/                # RabbitMQ MassTransit consumers
+│   │   │   ├── Controllers/
+│   │   │   ├── DTOs/
+│   │   │   └── Services/                 # RealNotificationService, NotificationStore
+│   │   └── IFMS.Notification.Tests
+│   │
+│   ├── Sales/
+│   │   ├── IFMS.Sales.API                # Transactions, complaints — port 5003
+│   │   ├── IFMS.Sales.Application
+│   │   ├── IFMS.Sales.Domain             # Transaction, Complaint entities
+│   │   ├── IFMS.Sales.Infrastructure     # EF Core, RabbitMQ publisher
+│   │   └── IFMS.Sales.Tests
+│   │
+│   └── Station/
+│       ├── IFMS.Station.API              # Stations, dealers — port 5006
+│       ├── IFMS.Station.API.Tests
+│       ├── IFMS.Station.Application      # DTOs, pricing
+│       ├── IFMS.Station.Domain
+│       ├── IFMS.Station.Domain.Tests
+│       ├── IFMS.Station.Infrastructure
+│       └── IFMS.Station.Infrastructure.Tests
+│
+├── 📦 Shared Libraries
+│   └── IFMS.Messaging/                   # RabbitMQ event contracts (MassTransit)
+│       └── Events/
+│           ├── BookingEvents.cs          # BookingCreated, BookingConfirmed, BookingCancelled
+│           ├── SalesEvents.cs            # SaleRecorded
+│           └── InventoryEvents.cs        # LowStockAlert
+│
+├── 🗄️ Database
+│   ├── database/                         # SQL schema scripts & seed data
+│   ├── fix-db/                           # One-time DB fix utilities
+│   └── seed-stations.sql
+│
+├── 🐳 DevOps & Configuration
+│   ├── docker-compose.yml                # Full stack (12 containers)
+│   ├── .gitignore
+│   ├── README.md
+│   └── TEST-CREDENTIALS.md
+│
+└── 🛠️ Scripts & Testing
+    ├── full-test.sh
+    ├── restart-*.sh                      # Per-service restart helpers
+    ├── test-*.sh                         # API test scripts
+    ├── test-apis.html                    # Browser-based API tester
+    └── test-price-api.html
 ```
