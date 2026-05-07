@@ -411,6 +411,49 @@ PRINT CONCAT('DailySalesSummary upserted. Rows affected: ', @@ROWCOUNT);
 GO
 
 -- =============================================
+-- SECTION 6 · STATION DB — Dealer Assignments (city-matched)
+-- Each dealer is assigned to the station in their matching city.
+-- Safe to re-run: skips if assignments already exist.
+-- =============================================
+USE IFMS_StationDB;
+GO
+
+IF NOT EXISTS (SELECT 1 FROM DealerAssignments)
+BEGIN
+    -- Direct city-matched inserts using known fixed IDs from seed data
+    -- Station IDs from seed-stations.sql / 11-bulk-seed-full.sql
+    -- Dealer  IDs from 11-bulk-seed-full.sql (B0000001-0000-0000-0000-00000000000X)
+    INSERT INTO DealerAssignments (Id, StationId, UserId, AssignedAt)
+    VALUES
+      -- Mumbai station  ← Dealer Mumbai  (dealer001)
+      (NEWID(), '11111111-1111-1111-1111-111111111111', 'B0000001-0000-0000-0000-000000000001', GETUTCDATE()),
+      -- Bengaluru station ← Dealer Bengaluru (dealer002)
+      (NEWID(), '22222222-2222-2222-2222-222222222222', 'B0000001-0000-0000-0000-000000000002', GETUTCDATE()),
+      -- New Delhi station ← Dealer New Delhi (dealer003)
+      (NEWID(), '33333333-3333-3333-3333-333333333333', 'B0000001-0000-0000-0000-000000000003', GETUTCDATE()),
+      -- Hyderabad station ← Dealer Hyderabad (dealer004)
+      (NEWID(), '44444444-4444-4444-4444-444444444444', 'B0000001-0000-0000-0000-000000000004', GETUTCDATE()),
+      -- Ahmedabad station ← Dealer Ahmedabad (dealer005)
+      (NEWID(), '55555555-5555-5555-5555-555555555555', 'B0000001-0000-0000-0000-000000000005', GETUTCDATE()),
+      -- Chennai station   ← Dealer Chennai   (dealer006)
+      (NEWID(), '66666666-6666-6666-6666-666666666666', 'B0000001-0000-0000-0000-000000000006', GETUTCDATE()),
+      -- Pune station      ← Dealer Pune      (dealer007)
+      (NEWID(), '77777777-7777-7777-7777-777777777777', 'B0000001-0000-0000-0000-000000000007', GETUTCDATE()),
+      -- Kolkata station   ← Dealer Kolkata   (dealer008)
+      (NEWID(), '88888888-8888-8888-8888-888888888888', 'B0000001-0000-0000-0000-000000000008', GETUTCDATE()),
+      -- Jaipur station    ← Dealer Jaipur    (dealer009)
+      (NEWID(), '99999999-9999-9999-9999-999999999999', 'B0000001-0000-0000-0000-000000000009', GETUTCDATE()),
+      -- Lucknow station   ← Dealer Lucknow   (dealer010)
+      (NEWID(), 'AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA', 'B0000001-0000-0000-0000-000000000010', GETUTCDATE());
+    PRINT 'Inserted 10 city-matched dealer assignments.';
+END
+ELSE
+BEGIN
+    PRINT 'Dealer assignments already exist — skipping.';
+END
+GO
+
+-- =============================================
 -- VERIFICATION SUMMARY
 -- =============================================
 PRINT '=== VERIFICATION ===';
@@ -418,6 +461,7 @@ GO
 USE IFMS_IdentityDB;  SELECT 'Users'        AS [Table], COUNT(*) AS [Rows] FROM Users;         GO
 USE IFMS_StationDB;   SELECT 'Stations'     AS [Table], COUNT(*) AS [Rows] FROM Stations;      GO
 USE IFMS_StationDB;   SELECT 'Pricing'      AS [Table], COUNT(*) AS [Rows] FROM StationPricing; GO
+USE IFMS_StationDB;   SELECT 'DealerAssignments' AS [Table], COUNT(*) AS [Rows] FROM DealerAssignments; GO
 USE IFMS_InventoryDB; SELECT 'FuelStocks'   AS [Table], COUNT(*) AS [Rows] FROM FuelStocks;    GO
 USE IFMS_InventoryDB; SELECT 'StockMovements' AS [Table], COUNT(*) AS [Rows] FROM StockMovements; GO
 USE IFMS_BookingDB;   SELECT 'Bookings'     AS [Table], COUNT(*) AS [Rows] FROM Bookings;      GO

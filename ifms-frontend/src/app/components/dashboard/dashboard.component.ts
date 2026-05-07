@@ -28,6 +28,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   dealerStations: { id: string; name: string; city: string; state: string }[] = [];
   dealerStationsLoading = false;
   selectedStationId: string | null = null;
+
+  /** The full station object for the currently selected station. */
+  get selectedStation(): { id: string; name: string; city: string; state: string } | null {
+    if (!this.selectedStationId) return null;
+    return this.dealerStations.find(s => s.id === this.selectedStationId) ?? null;
+  }
   stationBookings: any[] = [];
   stationBookingsLoading = false;
   stationBookingsError = '';
@@ -71,7 +77,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   // Dealer KPIs (derived from overview)
   get salesToday(): string {
-    return this.overview?.totalRevenue ? `₹${(this.overview.totalRevenue / 100).toFixed(2)}` : '₹0.00';
+    return this.overview?.totalRevenue ? `₹${this.overview.totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : '₹0';
   }
 
   constructor(
@@ -120,10 +126,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
     if (this.role === 'Admin' || this.role === 'Dealer') {
       this.overviewLoading = true;
-      this.salesService.getOverview().subscribe({
-        next: (data) => { this.overview = data; this.overviewLoading = false; },
-        error: () => { this.overviewError = true; this.overviewLoading = false; }
-      });
+      if (this.role === 'Admin') {
+        this.salesService.getOverview().subscribe({
+          next: (data) => { this.overview = data; this.overviewLoading = false; },
+          error: () => { this.overviewError = true; this.overviewLoading = false; }
+        });
+      } else {
+        // Dealer: use /sales/summary (scoped to their assigned stations)
+        this.salesService.getDealerSummary().subscribe({
+          next: (data) => {
+            this.overview = {
+              totalTransactions: data.totalTransactions,
+              totalRevenue: data.totalRevenue,
+              petrolSold: data.byFuelType?.find((f: any) => f.fuelType === 'Petrol')?.litres ?? 0,
+              dieselSold: data.byFuelType?.find((f: any) => f.fuelType === 'Diesel')?.litres ?? 0,
+            };
+            this.overviewLoading = false;
+          },
+          error: () => { this.overviewError = true; this.overviewLoading = false; }
+        });
+      }
     }
 
     if (this.role === 'Dealer') {
@@ -172,6 +194,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   onDealerStationChange() { this.loadStationBookings(); }
+
+  get selectedDealerStationLabel(): string {
+    if (!this.selectedStationId) return '';
+    const s = this.dealerStations.find((x) => x.id === this.selectedStationId);
+    return s ? `${s.name} (${s.city}, ${s.state})` : '';
+  }
 
   loadStationBookings() {
     if (!this.selectedStationId) { this.stationBookings = []; return; }

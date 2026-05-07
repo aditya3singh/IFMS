@@ -46,6 +46,11 @@
 
     <div class="p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
+      <!-- Loading station -->
+      <div *ngIf="isLoadingStation" class="flex items-center gap-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-lg px-4 py-3 text-sm font-medium">
+        <span class="material-symbols-outlined text-sm animate-spin">progress_activity</span>Loading your station data…
+      </div>
+
       <!-- Success message -->
       <div *ngIf="successMsg" class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3 text-sm font-medium">
         <span class="material-symbols-outlined text-sm">check_circle</span>{{ successMsg }}

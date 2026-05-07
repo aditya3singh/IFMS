@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { SalesService } from '../../services/sales.service';
 import { AuthService } from '../../services/auth.service';
+import { StaffService } from '../../services/staff.service';
 import { PaginationComponent } from '../../shared/pagination.component';
 import { NotificationBellComponent } from '../../shared/notification-bell.component';
 
@@ -25,6 +26,8 @@ interface DealerUser {
   fullName: string;
   email: string;
   role: string;
+  // plainPassword is only set for newly created dealers, not fetched from API
+  plainPassword?: string;
 }
 
 @Component({
@@ -62,7 +65,12 @@ export class AdminComponent implements OnInit {
   showAssignModal = false;
   selectedStation: Station | null = null;
   selectedDealerId = '';
+  selectedDealerInfo: DealerUser | null = null;
   assignLoading = false;
+
+  // Reset state
+  resetLoading = false;
+  resetMessage = '';
 
   // Station search
   stationSearch = '';
@@ -78,9 +86,6 @@ export class AdminComponent implements OnInit {
   selectedStationForStaff: Station | null = null;
   stationStaffMap: Record<string, any[]> = {};
   showStaffModal = false;
-  newStaffForm = { name: '', role: 'Pump Operator', shift: 'Morning (6AM-2PM)', phone: '', status: 'Active' };
-  staffRoles = ['Pump Operator', 'Cashier', 'Supervisor', 'Security Guard', 'Maintenance'];
-  staffShifts = ['Morning (6AM-2PM)', 'Afternoon (2PM-10PM)', 'Night (10PM-6AM)'];
   staffSuccess = '';
   staffError = '';
 
@@ -96,6 +101,7 @@ export class AdminComponent implements OnInit {
     private salesService: SalesService,
     private http: HttpClient,
     private authService: AuthService,
+    private staffService: StaffService,
     private router: Router
   ) {}
 
@@ -153,18 +159,21 @@ export class AdminComponent implements OnInit {
     this.http.get<Station[]>(this.stationUrl, { headers: this.getHeaders() }).subscribe({
       next: (stations) => {
         this.stations = stations;
-        // For each station that has a dealer assignment, fetch dealer info
         this.enrichStationsWithDealerInfo();
         this.stationsLoading = false;
       },
       error: () => { this.dealerMgmtError = 'Could not load stations.'; this.stationsLoading = false; }
     });
 
-    // Load all dealer users from identity API
-    this.http.get<any[]>(`${this.identityUrl}/users?role=Dealer`, { headers: this.getHeaders() }).subscribe({
-      next: (users) => { this.dealers = users; },
-      error: () => {
-        // Fallback: use known dealer from token
+    // Load all dealer users — use HttpParams to avoid URL encoding issues
+    const params = new HttpParams().set('role', 'Dealer');
+    this.http.get<any[]>(`${this.identityUrl}/users`, { headers: this.getHeaders(), params }).subscribe({
+      next: (users) => {
+        this.dealers = users;
+      },
+      error: (err) => {
+        console.error('Failed to load dealers:', err);
+        this.dealerMgmtError = 'Could not load dealer list. Check Identity Service.';
         this.dealers = [];
       }
     });
@@ -203,26 +212,69 @@ export class AdminComponent implements OnInit {
   openAssignModal(station: Station) {
     this.selectedStation = station;
     this.selectedDealerId = station.dealerAssignment?.userId || '';
+    this.selectedDealerInfo = this.dealers.find(d => d.id === this.selectedDealerId) || null;
     this.showAssignModal = true;
     this.dealerMgmtError = '';
+  }
+
+  onDealerSelectChange() {
+    this.selectedDealerInfo = this.dealers.find(d => d.id === this.selectedDealerId) || null;
+  }
+
+  get selectableDealers(): DealerUser[] {
+    if (!this.selectedStation) return this.dealers;
+    return this.dealers.filter((d) => {
+      const assignedStation = this.stations.find(
+        (s) => s.dealerAssignment?.userId === d.id && s.id !== this.selectedStation!.id
+      );
+      return !assignedStation;
+    });
+  }
+
+  isDealerAssignedElsewhere(dealerId: string): boolean {
+    if (!dealerId || !this.selectedStation) return false;
+    return this.stations.some(
+      (s) => s.dealerAssignment?.userId === dealerId && s.id !== this.selectedStation!.id
+    );
+  }
+
+  getDealerAssignedStationLabel(dealerId: string): string {
+    const assigned = this.stations.find(
+      (s) => s.dealerAssignment?.userId === dealerId && s.id !== this.selectedStation?.id
+    );
+    return assigned ? `${assigned.name} (${assigned.city}, ${assigned.state})` : '';
   }
 
   assignDealer() {
     if (!this.selectedStation || !this.selectedDealerId) return;
     this.assignLoading = true;
+    this.dealerMgmtError = '';
 
-    // If station already has a dealer, unassign first (not supported by API directly)
-    // Just assign - API will handle conflict
+    // Step 1: reset dealer password to Dealer@12345 (ensures login always works)
+    this.http.put(
+      `${this.identityUrl}/users/${this.selectedDealerId}/set-password`,
+      { newPassword: 'Dealer@12345' },
+      { headers: this.getHeaders() }
+    ).subscribe({
+      next: () => this.doAssign(),
+      error: () => this.doAssign() // proceed even if password reset fails
+    });
+  }
+
+  private doAssign() {
+    // Step 2: assign dealer to station (backend upserts automatically)
     this.http.post(
-      `${this.stationUrl}/${this.selectedStation.id}/assign-dealer`,
+      `${this.stationUrl}/${this.selectedStation!.id}/assign-dealer`,
       { userId: this.selectedDealerId },
       { headers: this.getHeaders() }
     ).subscribe({
       next: () => {
-        this.dealerMgmtSuccess = `Dealer assigned to ${this.selectedStation!.name} successfully.`;
+        const dealer = this.dealers.find(d => d.id === this.selectedDealerId);
+        this.dealerMgmtSuccess = `✅ ${dealer?.fullName || 'Dealer'} assigned to ${this.selectedStation!.name}. Password set to Dealer@12345.`;
         this.showAssignModal = false;
+        this.selectedDealerInfo = null;
         this.assignLoading = false;
-        setTimeout(() => this.dealerMgmtSuccess = '', 3000);
+        setTimeout(() => this.dealerMgmtSuccess = '', 6000);
         this.loadDealerManagement();
       },
       error: (err) => {
@@ -233,11 +285,101 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  /** Reset: unassign all dealers from all stations, then auto-assign dealers by matching city name + reset passwords */
+  resetAllDealers() {
+    if (!confirm('This will REMOVE all current dealer assignments and auto-assign dealers by matching city names (passwords reset to Dealer@12345). Continue?')) return;
+    this.resetLoading = true;
+    this.resetMessage = '';
+    this.dealerMgmtError = '';
+
+    // Step 1: unassign all stations that have a dealer
+    const assignedStations = this.stations.filter(s => s.dealerAssignment);
+    const unassignCalls = assignedStations.map(s =>
+      this.http.delete(`${this.stationUrl}/${s.id}/dealer`, { headers: this.getHeaders() }).toPromise().catch(() => null)
+    );
+
+    Promise.all(unassignCalls).then(() => {
+      if (this.dealers.length === 0) {
+        this.resetLoading = false;
+        this.resetMessage = '⚠️ No dealers found. Check Identity Service.';
+        this.loadDealerManagement();
+        return;
+      }
+
+      // Step 2: reset all dealer passwords to Dealer@12345
+      const pwdResetCalls = this.dealers.map(d =>
+        this.http.put(
+          `${this.identityUrl}/users/${d.id}/set-password`,
+          { newPassword: 'Dealer@12345' },
+          { headers: this.getHeaders() }
+        ).toPromise().catch(() => null)
+      );
+
+      Promise.all(pwdResetCalls).then(() => {
+        // Step 3: assign each dealer to a station by matching city name.
+        // A dealer named "Dealer Mumbai" is matched to a station in Mumbai.
+        // Unmatched dealers are assigned to remaining unmatched stations in order.
+        const pairs = this.buildCityMatchedPairs();
+
+        const assignCalls = pairs.map(({ station, dealer }) =>
+          this.http.post(
+            `${this.stationUrl}/${station.id}/assign-dealer`,
+            { userId: dealer.id },
+            { headers: this.getHeaders() }
+          ).toPromise().catch(() => null)
+        );
+
+        Promise.all(assignCalls).then(() => {
+          this.resetLoading = false;
+          const assignedNow = pairs.length;
+          const unassignedNow = Math.max(0, this.stations.length - assignedNow);
+          this.resetMessage = `✅ Reset complete. ${assignedNow} station(s) assigned by city match. ${unassignedNow} station(s) remain unassigned. All passwords: Dealer@12345`;
+          setTimeout(() => this.resetMessage = '', 8000);
+          this.loadDealerManagement();
+        });
+      });
+    });
+  }
+
+  /**
+   * Build station↔dealer pairs by matching the city name embedded in the dealer's
+   * full name (e.g. "Dealer Mumbai" → city "Mumbai").
+   * Dealers that don't match any station city are paired with leftover stations in order.
+   */
+  private buildCityMatchedPairs(): { station: Station; dealer: DealerUser }[] {
+    const pairs: { station: Station; dealer: DealerUser }[] = [];
+    const usedStationIds = new Set<string>();
+    const usedDealerIds = new Set<string>();
+
+    // First pass: exact city-name match (case-insensitive)
+    for (const dealer of this.dealers) {
+      const nameParts = dealer.fullName.toLowerCase().split(/\s+/);
+      const matched = this.stations.find(s =>
+        !usedStationIds.has(s.id) &&
+        nameParts.some(part => s.city.toLowerCase() === part)
+      );
+      if (matched) {
+        pairs.push({ station: matched, dealer });
+        usedStationIds.add(matched.id);
+        usedDealerIds.add(dealer.id);
+      }
+    }
+
+    // Second pass: assign remaining dealers to remaining stations in order
+    const remainingStations = this.stations.filter(s => !usedStationIds.has(s.id));
+    const remainingDealers = this.dealers.filter(d => !usedDealerIds.has(d.id));
+    const fallbackCount = Math.min(remainingStations.length, remainingDealers.length);
+    for (let i = 0; i < fallbackCount; i++) {
+      pairs.push({ station: remainingStations[i]!, dealer: remainingDealers[i]! });
+    }
+
+    return pairs;
+  }
+
   unassignDealer(station: Station) {
     if (!confirm(`Remove dealer from ${station.name}?`)) return;
-    // Call unassign endpoint
     this.http.delete(
-      `${this.stationUrl}/${station.id}/assign-dealer`,
+      `${this.stationUrl}/${station.id}/dealer`,
       { headers: this.getHeaders() }
     ).subscribe({
       next: () => {
@@ -245,8 +387,8 @@ export class AdminComponent implements OnInit {
         setTimeout(() => this.dealerMgmtSuccess = '', 3000);
         this.loadDealerManagement();
       },
-      error: () => {
-        // Fallback: update locally
+      error: (err) => {
+        // Fallback: update locally and show message
         const idx = this.stations.findIndex(s => s.id === station.id);
         if (idx !== -1) { this.stations[idx].dealerAssignment = null; this.stations[idx].dealerName = undefined; }
         this.dealerMgmtSuccess = `Dealer removed from ${station.name}.`;
@@ -255,54 +397,34 @@ export class AdminComponent implements OnInit {
     });
   }
 
-  // ── Staff per Station ─────────────────────────────────────────────────────
+  // ── Staff per Station (Admin: view + delete only) ────────────────────────
   openStaffModal(station: Station) {
     this.selectedStationForStaff = station;
     this.showStaffModal = true;
     this.staffSuccess = '';
     this.staffError = '';
-    if (!this.stationStaffMap[station.id]) {
-      this.loadStationStaff(station.id);
-    }
+    // Seed default staff by city if none exists yet, then load
+    this.staffService.seedIfEmpty(station.id, station.city);
+    this.stationStaffMap[station.id] = this.staffService.getStaff(station.id);
   }
 
   loadStationStaff(stationId: string) {
-    const stored = localStorage.getItem(`ifms_staff_${stationId}`);
-    this.stationStaffMap[stationId] = stored ? JSON.parse(stored) : [];
+    this.stationStaffMap[stationId] = this.staffService.getStaff(stationId);
   }
 
   saveStationStaff(stationId: string) {
-    localStorage.setItem(`ifms_staff_${stationId}`, JSON.stringify(this.stationStaffMap[stationId]));
-  }
-
-  addStaffToStation() {
-    if (!this.selectedStationForStaff) return;
-    if (!this.newStaffForm.name.trim() || !this.newStaffForm.phone.trim()) {
-      this.staffError = 'Name and phone are required.';
-      return;
-    }
-    const stationId = this.selectedStationForStaff.id;
-    if (!this.stationStaffMap[stationId]) this.stationStaffMap[stationId] = [];
-    this.stationStaffMap[stationId].unshift({
-      id: Date.now(),
-      ...this.newStaffForm,
-      joinDate: new Date().toISOString().split('T')[0]
-    });
-    this.saveStationStaff(stationId);
-    this.staffSuccess = `${this.newStaffForm.name} added to ${this.selectedStationForStaff.name}.`;
-    this.staffError = '';
-    this.newStaffForm = { name: '', role: 'Pump Operator', shift: 'Morning (6AM-2PM)', phone: '', status: 'Active' };
-    setTimeout(() => this.staffSuccess = '', 3000);
+    this.staffService.saveStaff(stationId, this.stationStaffMap[stationId] ?? []);
   }
 
   removeStaffFromStation(stationId: string, staffId: number) {
-    this.stationStaffMap[stationId] = (this.stationStaffMap[stationId] || []).filter((s: any) => s.id !== staffId);
-    this.saveStationStaff(stationId);
+    this.staffService.removeStaff(stationId, staffId);
+    this.stationStaffMap[stationId] = this.staffService.getStaff(stationId);
+    this.staffSuccess = 'Staff member removed.';
+    setTimeout(() => this.staffSuccess = '', 3000);
   }
 
   getStaffCount(stationId: string): number {
-    const stored = localStorage.getItem(`ifms_staff_${stationId}`);
-    return stored ? JSON.parse(stored).length : 0;
+    return this.staffService.getCount(stationId);
   }
 
   getStaffStatusCls(status: string): string {

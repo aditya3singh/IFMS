@@ -39,6 +39,27 @@ Role: Dealer
 
 ---
 
+### 🏪 Seeded Dealer Accounts (city-matched)
+
+Each dealer is assigned to the station in their city. Password for all: `Pass@1234`
+
+| Email | Dealer Name | Assigned Station | City |
+|---|---|---|---|
+| dealer001@ifms.in | Dealer Mumbai | Western Express Fuel Point | Mumbai |
+| dealer002@ifms.in | Dealer Bengaluru | Silicon Corridor Pump | Bengaluru |
+| dealer003@ifms.in | Dealer New Delhi | NCR Central Energy | New Delhi |
+| dealer004@ifms.in | Dealer Hyderabad | HITEC City Fuels | Hyderabad |
+| dealer005@ifms.in | Dealer Ahmedabad | Sabarmati Retail Outlet | Ahmedabad |
+| dealer006@ifms.in | Dealer Chennai | Marina Fuel Hub | Chennai |
+| dealer007@ifms.in | Dealer Pune | Deccan Energy Point | Pune |
+| dealer008@ifms.in | Dealer Kolkata | Hooghly River Fuels | Kolkata |
+| dealer009@ifms.in | Dealer Jaipur | Pink City Petroleum | Jaipur |
+| dealer010@ifms.in | Dealer Lucknow | Nawabi Fuel Station | Lucknow |
+
+> **Note:** If assignments are wrong, run `database/12-fix-dealer-assignments.sql` to reset them correctly by city match.
+
+---
+
 ### 👤 Customer Accounts
 
 #### Customer 1 (Primary)

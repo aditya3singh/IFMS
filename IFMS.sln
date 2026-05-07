@@ -7,91 +7,91 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core Services", "Core Servi
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Identity", "Identity", "{D2C00C1A-6A58-4A71-A803-1D5926F86966}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Identity.API", "IFMS.Identity.API\IFMS.Identity.API.csproj", "{8CBCE5B6-0651-4FEB-804A-0E0A23B10605}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Identity.API", "Identity\IFMS.Identity.API\IFMS.Identity.API.csproj", "{8CBCE5B6-0651-4FEB-804A-0E0A23B10605}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Identity.Application", "IFMS.Identity.Application\IFMS.Identity.Application.csproj", "{D06F8069-3639-4FF4-B99C-3F5526475514}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Identity.Application", "Identity\IFMS.Identity.Application\IFMS.Identity.Application.csproj", "{D06F8069-3639-4FF4-B99C-3F5526475514}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Identity.Domain", "IFMS.Identity.Domain\IFMS.Identity.Domain.csproj", "{0DAA8289-2DD0-40BF-BE28-DB4F9A5F9920}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Identity.Domain", "Identity\IFMS.Identity.Domain\IFMS.Identity.Domain.csproj", "{0DAA8289-2DD0-40BF-BE28-DB4F9A5F9920}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Identity.Infrastructure", "IFMS.Identity.Infrastructure\IFMS.Identity.Infrastructure.csproj", "{E0AB7663-C75F-4559-8166-BCC839EB94EA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Identity.Infrastructure", "Identity\IFMS.Identity.Infrastructure\IFMS.Identity.Infrastructure.csproj", "{E0AB7663-C75F-4559-8166-BCC839EB94EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Identity.Tests", "IFMS.Identity.Tests\IFMS.Identity.Tests.csproj", "{679A5EAC-195C-49F8-B37F-77DC71BACF5B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Identity.Tests", "Identity\IFMS.Identity.Tests\IFMS.Identity.Tests.csproj", "{679A5EAC-195C-49F8-B37F-77DC71BACF5B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Booking", "Booking", "{D67DC5A3-8403-4832-B6FB-D8A2888BDC64}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Booking.API", "IFMS.Booking.API\IFMS.Booking.API.csproj", "{D85CAEA8-E02C-41F9-BAF6-05BB0044284A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Booking.API", "Booking\IFMS.Booking.API\IFMS.Booking.API.csproj", "{D85CAEA8-E02C-41F9-BAF6-05BB0044284A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Booking.Application", "IFMS.Booking.Application\IFMS.Booking.Application.csproj", "{6B5F7ED1-3EC7-4FDD-919D-CE9B4B56EA25}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Booking.Application", "Booking\IFMS.Booking.Application\IFMS.Booking.Application.csproj", "{6B5F7ED1-3EC7-4FDD-919D-CE9B4B56EA25}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Booking.Domain", "IFMS.Booking.Domain\IFMS.Booking.Domain.csproj", "{5B142188-91FF-483E-9A3D-8A8F86B82B60}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Booking.Domain", "Booking\IFMS.Booking.Domain\IFMS.Booking.Domain.csproj", "{5B142188-91FF-483E-9A3D-8A8F86B82B60}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Booking.Infrastructure", "IFMS.Booking.Infrastructure\IFMS.Booking.Infrastructure.csproj", "{5A5E74F1-0B96-4445-B070-5011DC208B27}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Booking.Infrastructure", "Booking\IFMS.Booking.Infrastructure\IFMS.Booking.Infrastructure.csproj", "{5A5E74F1-0B96-4445-B070-5011DC208B27}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Booking.Tests", "IFMS.Booking.Tests\IFMS.Booking.Tests.csproj", "{C851390A-EE84-43BD-9DF5-F31AB2D7371F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Booking.Tests", "Booking\IFMS.Booking.Tests\IFMS.Booking.Tests.csproj", "{C851390A-EE84-43BD-9DF5-F31AB2D7371F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sales", "Sales", "{DDB55C05-B838-4E15-8618-D2CB8AF4F6B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Sales.API", "IFMS.Sales.API\IFMS.Sales.API.csproj", "{5932F665-65C0-4F64-BB07-CB1B1D2BA3A5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Sales.API", "Sales\IFMS.Sales.API\IFMS.Sales.API.csproj", "{5932F665-65C0-4F64-BB07-CB1B1D2BA3A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Sales.Application", "IFMS.Sales.Application\IFMS.Sales.Application.csproj", "{76973258-B4A9-4EF6-814D-8330E466D63C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Sales.Application", "Sales\IFMS.Sales.Application\IFMS.Sales.Application.csproj", "{76973258-B4A9-4EF6-814D-8330E466D63C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Sales.Domain", "IFMS.Sales.Domain\IFMS.Sales.Domain.csproj", "{F914652C-7E03-4E48-B3F1-89BA44A65B44}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Sales.Domain", "Sales\IFMS.Sales.Domain\IFMS.Sales.Domain.csproj", "{F914652C-7E03-4E48-B3F1-89BA44A65B44}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Sales.Infrastructure", "IFMS.Sales.Infrastructure\IFMS.Sales.Infrastructure.csproj", "{D75FECD5-EDEE-479D-B1B8-4B53BAFE78DB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Sales.Infrastructure", "Sales\IFMS.Sales.Infrastructure\IFMS.Sales.Infrastructure.csproj", "{D75FECD5-EDEE-479D-B1B8-4B53BAFE78DB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Sales.Tests", "IFMS.Sales.Tests\IFMS.Sales.Tests.csproj", "{E63E8B96-47B5-4730-B3B7-053031E97578}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Sales.Tests", "Sales\IFMS.Sales.Tests\IFMS.Sales.Tests.csproj", "{E63E8B96-47B5-4730-B3B7-053031E97578}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Inventory", "Inventory", "{34960D40-6618-41F0-8514-47A7B9CB839E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Inventory.API", "IFMS.Inventory.API\IFMS.Inventory.API.csproj", "{869B327A-B003-427C-A8D2-970B46D9AF03}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Inventory.API", "Inventory\IFMS.Inventory.API\IFMS.Inventory.API.csproj", "{869B327A-B003-427C-A8D2-970B46D9AF03}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Inventory.Application", "IFMS.Inventory.Application\IFMS.Inventory.Application.csproj", "{69030D2A-6AD6-41B3-B328-E3F7847FF0FB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Inventory.Application", "Inventory\IFMS.Inventory.Application\IFMS.Inventory.Application.csproj", "{69030D2A-6AD6-41B3-B328-E3F7847FF0FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Inventory.Domain", "IFMS.Inventory.Domain\IFMS.Inventory.Domain.csproj", "{A5F83A87-3F41-4AF4-8DBB-28D3F84D13D4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Inventory.Domain", "Inventory\IFMS.Inventory.Domain\IFMS.Inventory.Domain.csproj", "{A5F83A87-3F41-4AF4-8DBB-28D3F84D13D4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Inventory.Infrastructure", "IFMS.Inventory.Infrastructure\IFMS.Inventory.Infrastructure.csproj", "{B709F3EB-AD84-4B33-8FAE-BF9C0AD1B3BD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Inventory.Infrastructure", "Inventory\IFMS.Inventory.Infrastructure\IFMS.Inventory.Infrastructure.csproj", "{B709F3EB-AD84-4B33-8FAE-BF9C0AD1B3BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Inventory.Tests", "IFMS.Inventory.Tests\IFMS.Inventory.Tests.csproj", "{40A7EFB9-40C6-42E3-AB78-32ECD46B2A29}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Inventory.Tests", "Inventory\IFMS.Inventory.Tests\IFMS.Inventory.Tests.csproj", "{40A7EFB9-40C6-42E3-AB78-32ECD46B2A29}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Station", "Station", "{F4B031C8-3ADC-45F7-A8CE-84C27AA2A704}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.API", "IFMS.Station.API\IFMS.Station.API.csproj", "{F79A6384-0A47-4ECB-8D8D-1D8449A62235}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.API", "Station\IFMS.Station.API\IFMS.Station.API.csproj", "{F79A6384-0A47-4ECB-8D8D-1D8449A62235}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.Application", "IFMS.Station.Application\IFMS.Station.Application.csproj", "{F583756E-9909-416A-A4E2-05F86FD6ABC1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.Application", "Station\IFMS.Station.Application\IFMS.Station.Application.csproj", "{F583756E-9909-416A-A4E2-05F86FD6ABC1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.Domain", "IFMS.Station.Domain\IFMS.Station.Domain.csproj", "{7557B598-6707-4330-BAB2-7D6901F5D8E3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.Domain", "Station\IFMS.Station.Domain\IFMS.Station.Domain.csproj", "{7557B598-6707-4330-BAB2-7D6901F5D8E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.Infrastructure", "IFMS.Station.Infrastructure\IFMS.Station.Infrastructure.csproj", "{0DE9F994-D370-4B01-833E-B15CA868D98A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.Infrastructure", "Station\IFMS.Station.Infrastructure\IFMS.Station.Infrastructure.csproj", "{0DE9F994-D370-4B01-833E-B15CA868D98A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.API.Tests", "IFMS.Station.API.Tests\IFMS.Station.API.Tests.csproj", "{0F24F649-067B-4766-B541-49B72010B6B1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.API.Tests", "Station\IFMS.Station.API.Tests\IFMS.Station.API.Tests.csproj", "{0F24F649-067B-4766-B541-49B72010B6B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.Domain.Tests", "IFMS.Station.Domain.Tests\IFMS.Station.Domain.Tests.csproj", "{7E250845-4412-47CF-AD70-40453ACF48EB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.Domain.Tests", "Station\IFMS.Station.Domain.Tests\IFMS.Station.Domain.Tests.csproj", "{7E250845-4412-47CF-AD70-40453ACF48EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.Infrastructure.Tests", "IFMS.Station.Infrastructure.Tests\IFMS.Station.Infrastructure.Tests.csproj", "{DEF1BB19-93F6-46AA-A961-0BDA5FEF466E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Station.Infrastructure.Tests", "Station\IFMS.Station.Infrastructure.Tests\IFMS.Station.Infrastructure.Tests.csproj", "{DEF1BB19-93F6-46AA-A961-0BDA5FEF466E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Notification", "Notification", "{C1B34B00-10C5-4CCA-A7CC-5DE47E4A84FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Notification.API", "IFMS.Notification.API\IFMS.Notification.API.csproj", "{135785FE-B4BF-4A54-AB36-D81F59D5DC1E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Notification.API", "Notification\IFMS.Notification.API\IFMS.Notification.API.csproj", "{135785FE-B4BF-4A54-AB36-D81F59D5DC1E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Notification.Tests", "IFMS.Notification.Tests\IFMS.Notification.Tests.csproj", "{BE688117-6749-4E4D-86BB-3C97E768EB22}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Notification.Tests", "Notification\IFMS.Notification.Tests\IFMS.Notification.Tests.csproj", "{BE688117-6749-4E4D-86BB-3C97E768EB22}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Admin", "Admin", "{F2436D83-1C0B-49BB-987B-DD729DB46C41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Admin.API", "IFMS.Admin.API\IFMS.Admin.API.csproj", "{05AFECAD-D813-4218-890A-C9B51B3D30FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Admin.API", "Admin\IFMS.Admin.API\IFMS.Admin.API.csproj", "{05AFECAD-D813-4218-890A-C9B51B3D30FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Admin.Application", "IFMS.Admin.Application\IFMS.Admin.Application.csproj", "{C814275A-A407-47F9-90A6-8BFD0EF4AD0A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Admin.Application", "Admin\IFMS.Admin.Application\IFMS.Admin.Application.csproj", "{C814275A-A407-47F9-90A6-8BFD0EF4AD0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Admin.Infrastructure", "IFMS.Admin.Infrastructure\IFMS.Admin.Infrastructure.csproj", "{835B09F9-28A5-4CEB-A7D2-B614653A7D62}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Admin.Infrastructure", "Admin\IFMS.Admin.Infrastructure\IFMS.Admin.Infrastructure.csproj", "{835B09F9-28A5-4CEB-A7D2-B614653A7D62}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Gateways & Aggregators", "Gateways & Aggregators", "{F1D07AE5-499F-4978-8F45-924BAEBE169B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Gateway", "IFMS.Gateway\IFMS.Gateway.csproj", "{4FC42136-070E-41C3-94F7-363E7DA57531}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Gateway", "Shared\IFMS.Gateway\IFMS.Gateway.csproj", "{4FC42136-070E-41C3-94F7-363E7DA57531}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.GraphQL.API", "IFMS.GraphQL.API\IFMS.GraphQL.API.csproj", "{922BB21B-C07C-4AFB-9420-243D97190C86}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.GraphQL.API", "Shared\IFMS.GraphQL.API\IFMS.GraphQL.API.csproj", "{922BB21B-C07C-4AFB-9420-243D97190C86}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared Libraries", "Shared Libraries", "{25C8D52A-DAD7-49F4-BA97-6936DE59BA9E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Messaging", "IFMS.Messaging\IFMS.Messaging.csproj", "{7EC29897-1122-4136-9E56-8D5A8BF569B3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFMS.Messaging", "Shared\IFMS.Messaging\IFMS.Messaging.csproj", "{7EC29897-1122-4136-9E56-8D5A8BF569B3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database & Scripts", "Database & Scripts", "{A937A7DD-8EF2-4903-ADF6-BED28C1F604C}"
 EndProject

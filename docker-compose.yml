@@ -44,7 +44,7 @@ services:
   identity-api:
     build:
       context: .
-      dockerfile: IFMS.Identity.API/Dockerfile
+      dockerfile: Identity/IFMS.Identity.API/Dockerfile
     container_name: ifms-identity-api
     depends_on:
       sqlserver:
@@ -67,7 +67,7 @@ services:
   station-api:
     build:
       context: .
-      dockerfile: IFMS.Station.API/Dockerfile
+      dockerfile: Station/IFMS.Station.API/Dockerfile
     container_name: ifms-station-api
     depends_on:
       sqlserver:
@@ -84,7 +84,7 @@ services:
   inventory-api:
     build:
       context: .
-      dockerfile: IFMS.Inventory.API/Dockerfile
+      dockerfile: Inventory/IFMS.Inventory.API/Dockerfile
     container_name: ifms-inventory-api
     depends_on:
       sqlserver:
@@ -107,7 +107,7 @@ services:
   sales-api:
     build:
       context: .
-      dockerfile: IFMS.Sales.API/Dockerfile
+      dockerfile: Sales/IFMS.Sales.API/Dockerfile
     container_name: ifms-sales-api
     depends_on:
       sqlserver:
@@ -133,7 +133,7 @@ services:
   booking-api:
     build:
       context: .
-      dockerfile: IFMS.Booking.API/Dockerfile
+      dockerfile: Booking/IFMS.Booking.API/Dockerfile
     container_name: ifms-booking-api
     depends_on:
       sqlserver:
@@ -161,7 +161,7 @@ services:
   admin-api:
     build:
       context: .
-      dockerfile: IFMS.Admin.API/Dockerfile
+      dockerfile: Admin/IFMS.Admin.API/Dockerfile
     container_name: ifms-admin-api
     depends_on:
       sqlserver:
@@ -180,7 +180,7 @@ services:
   notification-api:
     build:
       context: .
-      dockerfile: IFMS.Notification.API/Dockerfile
+      dockerfile: Notification/IFMS.Notification.API/Dockerfile
     container_name: ifms-notification-api
     depends_on:
       rabbitmq:
@@ -205,7 +205,7 @@ services:
   gateway:
     build:
       context: .
-      dockerfile: IFMS.Gateway/Dockerfile
+      dockerfile: Shared/IFMS.Gateway/Dockerfile
     container_name: ifms-gateway
     depends_on:
       identity-api:
@@ -233,7 +233,7 @@ services:
   graphql-api:
     build:
       context: .
-      dockerfile: IFMS.GraphQL.API/Dockerfile
+      dockerfile: Shared/IFMS.GraphQL.API/Dockerfile
     container_name: ifms-graphql-api
     depends_on:
       sqlserver:

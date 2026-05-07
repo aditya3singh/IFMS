@@ -41,6 +41,11 @@ export class SalesService {
     return this.http.get(`${this.adminUrl}/overview`, { headers: this.getHeaders() });
   }
 
+  /** Dealer-scoped summary: total transactions + revenue for their assigned stations. */
+  getDealerSummary(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/summary`, { headers: this.getHeaders() });
+  }
+
   getDailyReport(date: string): Observable<any> {
     return this.http.get(`${this.adminUrl}/daily-report?date=${date}`, 
       { headers: this.getHeaders() });

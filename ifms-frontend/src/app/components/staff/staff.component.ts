@@ -2,19 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { AuthService } from '../../services/auth.service';
+import { StaffService, StaffMember } from '../../services/staff.service';
 import { PaginationComponent } from '../../shared/pagination.component';
 import { NotificationBellComponent } from '../../shared/notification-bell.component';
-
-interface StaffMember {
-  id: number;
-  name: string;
-  role: string;
-  shift: string;
-  phone: string;
-  email: string;
-  status: 'Active' | 'Off Duty' | 'On Leave';
-  joinDate: string;
-}
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-staff',
@@ -32,44 +25,78 @@ export class StaffComponent implements OnInit {
   successMsg = '';
   errorMsg = '';
 
+  stationId: string | null = null;
+  stationName = '';
+  isLoadingStation = true;
+  stationLoadError = '';
+
   newStaff: Omit<StaffMember, 'id'> = {
-    name: '', role: 'Pump Operator', shift: 'Morning',
-    phone: '', email: '', status: 'Active', joinDate: new Date().toISOString().split('T')[0]
+    name: '', role: 'Pump Operator', shift: 'Morning (6AM-2PM)',
+    phone: '', email: '', status: 'Active',
+    joinDate: new Date().toISOString().split('T')[0]
   };
 
   readonly roles = ['Pump Operator', 'Cashier', 'Supervisor', 'Security Guard', 'Maintenance'];
   readonly shifts = ['Morning (6AM-2PM)', 'Afternoon (2PM-10PM)', 'Night (10PM-6AM)'];
   readonly statuses: StaffMember['status'][] = ['Active', 'Off Duty', 'On Leave'];
 
-  // Pagination
   staffPage = 1; staffPageSize = 8;
-  get pagedStaff() { return this.filteredStaff.slice((this.staffPage-1)*this.staffPageSize, this.staffPage*this.staffPageSize); }
+  get pagedStaff() {
+    return this.filteredStaff.slice(
+      (this.staffPage - 1) * this.staffPageSize,
+      this.staffPage * this.staffPageSize
+    );
+  }
 
-  constructor(private router: Router) {}
+  private readonly stationUrl = environment.stationApiUrl;
+
+  constructor(
+    private router: Router,
+    private http: HttpClient,
+    private authService: AuthService,
+    private staffService: StaffService
+  ) {}
 
   ngOnInit() {
-    this.loadStaff();
+    this.resolveStationThenLoad();
   }
 
-  loadStaff() {
-    const stored = localStorage.getItem('ifms_staff');
-    if (stored) {
-      this.staffList = JSON.parse(stored);
-    } else {
-      // Default seed data
-      this.staffList = [
-        { id: 1, name: 'Ramesh Kumar', role: 'Pump Operator', shift: 'Morning (6AM-2PM)', phone: '9876543210', email: 'ramesh@station.com', status: 'Active', joinDate: '2024-01-15' },
-        { id: 2, name: 'Suresh Patel', role: 'Cashier', shift: 'Afternoon (2PM-10PM)', phone: '9876543211', email: 'suresh@station.com', status: 'Active', joinDate: '2024-03-01' },
-        { id: 3, name: 'Anita Singh', role: 'Supervisor', shift: 'Morning (6AM-2PM)', phone: '9876543212', email: 'anita@station.com', status: 'Active', joinDate: '2023-11-10' },
-        { id: 4, name: 'Vijay Sharma', role: 'Security Guard', shift: 'Night (10PM-6AM)', phone: '9876543213', email: 'vijay@station.com', status: 'Off Duty', joinDate: '2024-02-20' },
-        { id: 5, name: 'Priya Nair', role: 'Pump Operator', shift: 'Afternoon (2PM-10PM)', phone: '9876543214', email: 'priya@station.com', status: 'On Leave', joinDate: '2024-05-05' },
-      ];
-      this.saveStaff();
-    }
+  private getHeaders(): HttpHeaders {
+    return new HttpHeaders({ Authorization: `Bearer ${this.authService.getToken()}` });
   }
 
-  saveStaff() {
-    localStorage.setItem('ifms_staff', JSON.stringify(this.staffList));
+  private resolveStationThenLoad() {
+    this.isLoadingStation = true;
+    this.staffList = [];
+
+    this.http.get<any[]>(`${this.stationUrl}/mine`, { headers: this.getHeaders() }).subscribe({
+      next: (stations) => {
+        this.isLoadingStation = false;
+        if (stations && stations.length > 0) {
+          const s = stations[0];
+          this.stationId = s.id;
+          this.stationName = s.name ?? '';
+          // Seed default staff by city if this station has no data yet
+          this.staffService.seedIfEmpty(s.id, s.city ?? '');
+        } else {
+          this.stationId = null;
+          this.stationLoadError = 'No station assigned to your account yet.';
+        }
+        this.reload();
+      },
+      error: () => {
+        this.isLoadingStation = false;
+        this.stationId = null;
+        this.stationLoadError = 'Could not reach station service.';
+        this.reload();
+      }
+    });
+  }
+
+  reload() {
+    this.staffList = this.stationId
+      ? this.staffService.getStaff(this.stationId)
+      : [];
   }
 
   get filteredStaff(): StaffMember[] {
@@ -87,21 +114,25 @@ export class StaffComponent implements OnInit {
   get onLeaveCount() { return this.staffList.filter(s => s.status === 'On Leave').length; }
 
   openAddModal() {
-    this.newStaff = { name: '', role: 'Pump Operator', shift: 'Morning (6AM-2PM)', phone: '', email: '', status: 'Active', joinDate: new Date().toISOString().split('T')[0] };
+    this.newStaff = {
+      name: '', role: 'Pump Operator', shift: 'Morning (6AM-2PM)',
+      phone: '', email: '', status: 'Active',
+      joinDate: new Date().toISOString().split('T')[0]
+    };
     this.showAddModal = true;
     this.errorMsg = '';
   }
 
   addStaff() {
+    if (!this.stationId) { this.errorMsg = 'No station assigned.'; return; }
     if (!this.newStaff.name.trim() || !this.newStaff.phone.trim()) {
       this.errorMsg = 'Name and phone are required.';
       return;
     }
-    const member: StaffMember = { id: Date.now(), ...this.newStaff };
-    this.staffList.unshift(member);
-    this.saveStaff();
+    this.staffService.addStaff(this.stationId, this.newStaff);
+    this.reload();
     this.showAddModal = false;
-    this.successMsg = `${member.name} added successfully.`;
+    this.successMsg = `${this.newStaff.name} added successfully.`;
     setTimeout(() => this.successMsg = '', 3000);
   }
 
@@ -112,34 +143,30 @@ export class StaffComponent implements OnInit {
   }
 
   saveEdit() {
-    if (!this.selectedStaff) return;
-    const idx = this.staffList.findIndex(s => s.id === this.selectedStaff!.id);
-    if (idx !== -1) {
-      this.staffList[idx] = { ...this.selectedStaff };
-      this.saveStaff();
-      this.showEditModal = false;
-      this.successMsg = `${this.selectedStaff.name} updated.`;
-      setTimeout(() => this.successMsg = '', 3000);
-    }
+    if (!this.selectedStaff || !this.stationId) return;
+    this.staffService.updateStaff(this.stationId, this.selectedStaff);
+    this.reload();
+    this.showEditModal = false;
+    this.successMsg = `${this.selectedStaff.name} updated.`;
+    setTimeout(() => this.successMsg = '', 3000);
   }
 
   deleteStaff(id: number) {
+    if (!this.stationId) return;
     const member = this.staffList.find(s => s.id === id);
     if (!member) return;
     if (confirm(`Remove ${member.name} from staff?`)) {
-      this.staffList = this.staffList.filter(s => s.id !== id);
-      this.saveStaff();
+      this.staffService.removeStaff(this.stationId, id);
+      this.reload();
       this.successMsg = `${member.name} removed.`;
       setTimeout(() => this.successMsg = '', 3000);
     }
   }
 
   updateStatus(id: number, status: StaffMember['status']) {
-    const idx = this.staffList.findIndex(s => s.id === id);
-    if (idx !== -1) {
-      this.staffList[idx].status = status;
-      this.saveStaff();
-    }
+    if (!this.stationId) return;
+    this.staffService.updateStatus(this.stationId, id, status);
+    this.reload();
   }
 
   getStatusCls(status: string): string {

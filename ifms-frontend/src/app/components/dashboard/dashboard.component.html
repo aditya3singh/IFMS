@@ -248,13 +248,35 @@
       <div class="mb-8 px-4">
         <span class="text-lg font-bold text-primary font-headline tracking-tighter">Bharat Kinetic</span>
       </div>
-      <div class="flex items-center gap-3 px-4 py-4 mb-6 bg-surface-container-highest/50 rounded-xl">
-        <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-white">
-          <span class="material-symbols-outlined">person</span>
+      <!-- Dealer identity card -->
+      <div class="px-4 py-4 mb-3 bg-surface-container-highest/50 rounded-xl">
+        <div class="flex items-center gap-3 mb-3">
+          <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-white">
+            <span class="material-symbols-outlined">person</span>
+          </div>
+          <div>
+            <p class="text-sm font-bold text-primary-container">{{ fullName || 'Dealer' }}</p>
+            <p class="text-[10px] text-outline uppercase tracking-wider">Fuel Station Dealer</p>
+          </div>
         </div>
-        <div>
-          <p class="text-sm font-bold text-primary-container">{{ fullName || 'Dealer' }}</p>
-          <p class="text-[10px] text-outline uppercase tracking-wider">Fuel Station Dealer</p>
+        <!-- Station info badge -->
+        <div *ngIf="selectedStation" class="mt-1 bg-primary/8 rounded-lg px-3 py-2 border border-primary/15">
+          <div class="flex items-center gap-1.5 mb-0.5">
+            <span class="material-symbols-outlined text-primary" style="font-size:14px;">local_gas_station</span>
+            <p class="text-[10px] font-black text-primary uppercase tracking-widest">Assigned Station</p>
+          </div>
+          <p class="text-sm font-bold text-on-surface leading-tight">{{ selectedStation.name }}</p>
+          <div class="flex items-center gap-1 mt-0.5">
+            <span class="material-symbols-outlined text-outline" style="font-size:12px;">location_on</span>
+            <p class="text-[10px] text-outline">{{ selectedStation.city }}, {{ selectedStation.state }}</p>
+          </div>
+        </div>
+        <div *ngIf="dealerStationsLoading" class="mt-1 bg-surface-container rounded-lg px-3 py-2">
+          <p class="text-[10px] text-outline animate-pulse">Loading station…</p>
+        </div>
+        <div *ngIf="!dealerStationsLoading && !selectedStation" class="mt-1 bg-error/5 rounded-lg px-3 py-2 border border-error/20">
+          <p class="text-[10px] text-error font-bold">No station assigned</p>
+          <p class="text-[10px] text-outline">Contact admin to get assigned.</p>
         </div>
       </div>
       <nav class="flex-1 space-y-1">
@@ -329,6 +351,25 @@
             <h2 class="text-4xl font-black text-primary font-headline tracking-tighter">Command Center<br/>
               <span class="text-outline-variant text-3xl">Real-time Operations</span>
             </h2>
+            <!-- Station name + location badge -->
+            <div *ngIf="selectedStation" class="mt-4 inline-flex items-center gap-2 bg-primary/8 border border-primary/20 rounded-xl px-4 py-2">
+              <span class="material-symbols-outlined text-primary" style="font-size:18px;">local_gas_station</span>
+              <div>
+                <p class="text-sm font-black text-primary leading-tight">{{ selectedStation.name }}</p>
+                <div class="flex items-center gap-1">
+                  <span class="material-symbols-outlined text-outline" style="font-size:12px;">location_on</span>
+                  <p class="text-xs text-outline font-medium">{{ selectedStation.city }}, {{ selectedStation.state }}</p>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="dealerStationsLoading" class="mt-4 inline-flex items-center gap-2 bg-surface-container rounded-xl px-4 py-2">
+              <div class="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+              <p class="text-xs text-outline">Loading station…</p>
+            </div>
+            <div *ngIf="!dealerStationsLoading && !selectedStation" class="mt-4 inline-flex items-center gap-2 bg-error/5 border border-error/20 rounded-xl px-4 py-2">
+              <span class="material-symbols-outlined text-error" style="font-size:16px;">warning</span>
+              <p class="text-xs text-error font-bold">No station assigned — contact admin</p>
+            </div>
           </div>
         </div>
 
@@ -343,7 +384,7 @@
               <p class="text-4xl font-black font-headline text-primary">
                 ₹{{ (overview?.totalRevenue ?? 0) | number:'1.0-0' }}
               </p>
-              <p class="text-on-tertiary-container text-xs font-bold mt-1">Cumulative network revenue</p>
+              <p class="text-on-tertiary-container text-xs font-bold mt-1">Your station revenue</p>
             </div>
           </div>
           <div class="bg-surface-container-lowest p-8 rounded-2xl flex flex-col justify-between min-h-[160px] border border-outline-variant/10">
@@ -364,7 +405,7 @@
             </div>
             <div>
               <p class="text-4xl font-black font-headline text-primary">{{ overview?.totalTransactions ?? 0 }}</p>
-              <p class="text-outline text-xs font-bold mt-1">All time network</p>
+              <p class="text-outline text-xs font-bold mt-1">Your station all time</p>
             </div>
           </div>
         </div>
