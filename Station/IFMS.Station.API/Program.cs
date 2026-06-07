@@ -33,6 +33,7 @@ builder.Services.AddDbContext<StationDbContext>(options =>
 // Repositories
 builder.Services.AddScoped<IStationRepository, StationRepository>();
 builder.Services.AddScoped<IDealerAssignmentRepository, DealerAssignmentRepository>();
+builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 
 // Memory Cache for fuel price caching
 builder.Services.AddMemoryCache();

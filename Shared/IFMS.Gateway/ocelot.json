@@ -19,7 +19,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "inventory-api", "Port": 8080 }],
       "UpstreamPathTemplate": "/gateway/inventory/{everything}",
-      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE", "PATCH"]
     },
     {
       "DownstreamPathTemplate": "/api/Inventory",
@@ -27,6 +27,41 @@
       "DownstreamHostAndPorts": [{ "Host": "inventory-api", "Port": 8080 }],
       "UpstreamPathTemplate": "/gateway/inventory",
       "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Suppliers/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "inventory-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/suppliers/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE", "PATCH"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Suppliers",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "inventory-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/suppliers",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Deliveries/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "inventory-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/deliveries/{everything}",
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE", "PATCH"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Deliveries",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "inventory-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/deliveries",
+      "UpstreamHttpMethod": ["GET", "POST"]
+    },
+    {
+      "DownstreamPathTemplate": "/api/StockTransactions/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [{ "Host": "inventory-api", "Port": 8080 }],
+      "UpstreamPathTemplate": "/gateway/stock-transactions/{everything}",
+      "UpstreamHttpMethod": ["GET"]
     },
     {
       "DownstreamPathTemplate": "/api/Sales/{everything}",
@@ -68,7 +103,7 @@
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [{ "Host": "station-api", "Port": 8080 }],
       "UpstreamPathTemplate": "/gateway/stations/{everything}",
-      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE"]
+      "UpstreamHttpMethod": ["GET", "POST", "PUT", "DELETE", "PATCH"]
     },
     {
       "DownstreamPathTemplate": "/api/Stations",

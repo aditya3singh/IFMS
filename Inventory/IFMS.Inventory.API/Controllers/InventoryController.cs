@@ -66,19 +66,19 @@ public class InventoryController : ControllerBase
     [Authorize(Roles = "Dealer")]
     public async Task<IActionResult> Create([FromBody] CreateFuelStockRequest request)
     {
+        var userId = GetUserId();
+        if (userId == null)
+            return Unauthorized();
+
         if (User.IsInRole("Dealer"))
         {
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized();
-
             if (!await _dealerAssignments.UserIsAssignedToStationAsync(userId.Value, request.StationId))
                 return Forbid();
         }
 
         try
         {
-            var result = await _handler.CreateAsync(request);
+            var result = await _handler.CreateAsync(request, userId, User.IsInRole("Admin") ? "Admin" : "Dealer");
             return Ok(result);
         }
         catch (Exception ex)
@@ -95,19 +95,24 @@ public class InventoryController : ControllerBase
         if (existing == null)
             return NotFound(new { error = "Fuel stock not found." });
 
+        var userId = GetUserId();
+        if (userId == null)
+            return Unauthorized();
+
         if (User.IsInRole("Dealer"))
         {
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized();
-
             if (!await _dealerAssignments.UserIsAssignedToStationAsync(userId.Value, existing.StationId))
                 return Forbid();
         }
 
         try
         {
-            var result = await _handler.UpdateStockAsync(request);
+            var result = await _handler.UpdateStockAsync(
+                request,
+                userId,
+                User.IsInRole("Admin") ? "Admin" : "Dealer",
+                "Manual stock adjustment"
+            );
 
             // Publish LowStockAlert event → Notification API consumes via RabbitMQ
             if (result.IsLowStock)
@@ -134,7 +139,12 @@ public class InventoryController : ControllerBase
 
         try
         {
-            var result = await _handler.UpdateStockAsync(request);
+            var result = await _handler.UpdateStockAsync(
+                request,
+                null,
+                "Sale",
+                "Automatic deduction from sale transaction"
+            );
 
             // Publish LowStockAlert event → Notification API consumes via RabbitMQ
             if (result.IsLowStock)

@@ -46,6 +46,7 @@ services:
       context: .
       dockerfile: Identity/IFMS.Identity.API/Dockerfile
     container_name: ifms-identity-api
+    restart: on-failure
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -69,6 +70,7 @@ services:
       context: .
       dockerfile: Station/IFMS.Station.API/Dockerfile
     container_name: ifms-station-api
+    restart: on-failure
     depends_on:
       sqlserver:
         condition: service_healthy
@@ -135,6 +137,7 @@ services:
       context: .
       dockerfile: Booking/IFMS.Booking.API/Dockerfile
     container_name: ifms-booking-api
+    restart: on-failure
     depends_on:
       sqlserver:
         condition: service_healthy

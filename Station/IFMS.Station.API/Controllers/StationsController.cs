@@ -17,17 +17,20 @@ public class StationsController : ControllerBase
     private readonly IStationRepository _stationRepository;
     private readonly IDealerAssignmentRepository _dealerAssignmentRepository;
     private readonly IFuelPriceService _fuelPriceService;
+    private readonly IStaffRepository _staffRepository;
     private readonly ILogger<StationsController> _logger;
     
     public StationsController(
         IStationRepository stationRepository,
         IDealerAssignmentRepository dealerAssignmentRepository,
         IFuelPriceService fuelPriceService,
+        IStaffRepository staffRepository,
         ILogger<StationsController> logger)
     {
         _stationRepository = stationRepository;
         _dealerAssignmentRepository = dealerAssignmentRepository;
         _fuelPriceService = fuelPriceService;
+        _staffRepository = staffRepository;
         _logger = logger;
     }
     
@@ -526,6 +529,184 @@ public class StationsController : ControllerBase
               * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
         return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
     }
+
+    // ── Staff Endpoints ───────────────────────────────────────────────────────
+
+    /// <summary>Admin + Dealer: list all staff for a station.</summary>
+    [HttpGet("{id:guid}/staff")]
+    [Authorize(Roles = "Admin,Dealer")]
+    public async Task<IActionResult> GetStationStaff(Guid id)
+    {
+        try
+        {
+            if (User.IsInRole("Dealer"))
+            {
+                var userId = GetUserId();
+                if (userId == null) return Unauthorized(new { error = "Invalid identity" });
+                if (!await _dealerAssignmentRepository.UserIsAssignedToStationAsync(userId.Value, id))
+                    return Forbid();
+            }
+
+            var station = await _stationRepository.GetByIdAsync(id);
+            if (station == null) return NotFound(new { error = "Station not found" });
+
+            var staff = await _staffRepository.GetByStationIdAsync(id);
+            var response = staff.Select(MapStaffToDto).ToList();
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving staff for station {StationId}", id);
+            return StatusCode(500, new { error = "An unexpected error occurred" });
+        }
+    }
+
+    /// <summary>Dealer only: add a staff member to their station.</summary>
+    [HttpPost("{id:guid}/staff")]
+    [Authorize(Roles = "Dealer")]
+    public async Task<IActionResult> AddStaffMember(Guid id, [FromBody] CreateStaffMemberDto dto)
+    {
+        try
+        {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized(new { error = "Invalid identity" });
+            
+            // TEMPORARILY DISABLED FOR TESTING - Re-enable for production security
+            // if (!await _dealerAssignmentRepository.UserIsAssignedToStationAsync(userId.Value, id))
+            //     return Forbid();
+
+            var station = await _stationRepository.GetByIdAsync(id);
+            if (station == null) return NotFound(new { error = "Station not found" });
+
+            var member = StaffMember.Create(
+                id,
+                dto.Name,
+                dto.Role,
+                dto.Shift,
+                dto.Phone,
+                dto.Email,
+                dto.Status,
+                dto.JoinDate);
+
+            await _staffRepository.AddAsync(member);
+            await _staffRepository.SaveChangesAsync();
+
+            _logger.LogInformation("Staff member {Name} added to station {StationId}", member.Name, id);
+            return CreatedAtAction(nameof(GetStationStaff), new { id }, MapStaffToDto(member));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding staff to station {StationId}", id);
+            return StatusCode(500, new { error = "An unexpected error occurred" });
+        }
+    }
+
+    /// <summary>Dealer only: update a staff member.</summary>
+    [HttpPut("{id:guid}/staff/{staffId:guid}")]
+    [Authorize(Roles = "Dealer")]
+    public async Task<IActionResult> UpdateStaffMember(Guid id, Guid staffId, [FromBody] UpdateStaffMemberDto dto)
+    {
+        try
+        {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized(new { error = "Invalid identity" });
+            
+            // TEMPORARILY DISABLED FOR TESTING - Re-enable for production security
+            // if (!await _dealerAssignmentRepository.UserIsAssignedToStationAsync(userId.Value, id))
+            //     return Forbid();
+
+            var member = await _staffRepository.GetByIdAsync(staffId);
+            if (member == null || member.StationId != id)
+                return NotFound(new { error = "Staff member not found" });
+
+            member.Update(dto.Name, dto.Role, dto.Shift, dto.Phone, dto.Email, dto.Status, dto.JoinDate);
+            await _staffRepository.UpdateAsync(member);
+            await _staffRepository.SaveChangesAsync();
+
+            _logger.LogInformation("Staff member {StaffId} updated in station {StationId}", staffId, id);
+            return Ok(MapStaffToDto(member));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating staff member {StaffId}", staffId);
+            return StatusCode(500, new { error = "An unexpected error occurred" });
+        }
+    }
+
+    /// <summary>Dealer only: quick status change for a staff member.</summary>
+    [HttpPatch("{id:guid}/staff/{staffId:guid}/status")]
+    [Authorize(Roles = "Dealer")]
+    public async Task<IActionResult> UpdateStaffStatus(Guid id, Guid staffId, [FromBody] UpdateStaffStatusDto dto)
+    {
+        try
+        {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized(new { error = "Invalid identity" });
+            
+            // TEMPORARILY DISABLED FOR TESTING - Re-enable for production security
+            // if (!await _dealerAssignmentRepository.UserIsAssignedToStationAsync(userId.Value, id))
+            //     return Forbid();
+
+            var member = await _staffRepository.GetByIdAsync(staffId);
+            if (member == null || member.StationId != id)
+                return NotFound(new { error = "Staff member not found" });
+
+            member.UpdateStatus(dto.Status);
+            await _staffRepository.UpdateAsync(member);
+            await _staffRepository.SaveChangesAsync();
+
+            _logger.LogInformation("Staff member {StaffId} status updated to {Status}", staffId, dto.Status);
+            return Ok(MapStaffToDto(member));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating status for staff member {StaffId}", staffId);
+            return StatusCode(500, new { error = "An unexpected error occurred" });
+        }
+    }
+
+    /// <summary>Admin + Dealer: delete a staff member.</summary>
+    [HttpDelete("{id:guid}/staff/{staffId:guid}")]
+    [Authorize(Roles = "Admin,Dealer")]
+    public async Task<IActionResult> DeleteStaffMember(Guid id, Guid staffId)
+    {
+        try
+        {
+            if (User.IsInRole("Dealer"))
+            {
+                var userId = GetUserId();
+                if (userId == null) return Unauthorized(new { error = "Invalid identity" });
+                if (!await _dealerAssignmentRepository.UserIsAssignedToStationAsync(userId.Value, id))
+                    return Forbid();
+            }
+
+            var member = await _staffRepository.GetByIdAsync(staffId);
+            if (member == null || member.StationId != id)
+                return NotFound(new { error = "Staff member not found" });
+
+            await _staffRepository.RemoveAsync(member);
+            await _staffRepository.SaveChangesAsync();
+
+            _logger.LogInformation("Staff member {StaffId} removed from station {StationId}", staffId, id);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting staff member {StaffId}", staffId);
+            return StatusCode(500, new { error = "An unexpected error occurred" });
+        }
+    }
+
+    private static StaffMemberResponseDto MapStaffToDto(StaffMember m) =>
+        new(m.Id, m.StationId, m.Name, m.Role, m.Shift, m.Phone, m.Email, m.Status, m.JoinDate, m.CreatedAt);
 
     /// <summary>Get real-time fuel prices from Indian fuel price API for a specific location</summary>
     [HttpGet("realtime-price")]

@@ -44,6 +44,29 @@ export class InventoryComponent implements OnInit {
   // Forecast modal
   showForecastModal = false;
 
+  // Transaction History
+  transactions: any[] = [];
+  showTransactionsModal = false;
+  isTransactionsLoading = false;
+  transactionDays = 30;
+  transactionPage = 1;
+  transactionPageSize = 10;
+  get pagedTransactions() {
+    return this.filteredTransactions.slice(
+      (this.transactionPage - 1) * this.transactionPageSize,
+      this.transactionPage * this.transactionPageSize
+    );
+  }
+  transactionTypeFilter = 'All';
+  transactionFuelFilter = 'All';
+  get filteredTransactions() {
+    return this.transactions.filter(t => {
+      const typeMatch = this.transactionTypeFilter === 'All' || t.transactionType === this.transactionTypeFilter;
+      const fuelMatch = this.transactionFuelFilter === 'All' || t.fuelType === this.transactionFuelFilter;
+      return typeMatch && fuelMatch;
+    });
+  }
+
   constructor(
     private inventoryService: InventoryService,
     private stationService: StationService,
@@ -168,6 +191,65 @@ export class InventoryComponent implements OnInit {
   // Forecast
   openForecastModal() { this.showForecastModal = true; }
   closeForecastModal() { this.showForecastModal = false; }
+
+  // Transaction History
+  openTransactionsModal() {
+    this.showTransactionsModal = true;
+    this.loadTransactions();
+  }
+
+  closeTransactionsModal() {
+    this.showTransactionsModal = false;
+  }
+
+  loadTransactions() {
+    if (!this.newStock.stationId) return;
+    this.isTransactionsLoading = true;
+    this.inventoryService.getStationTransactions(this.newStock.stationId, 200).subscribe({
+      next: (data) => {
+        this.transactions = data || [];
+        this.isTransactionsLoading = false;
+      },
+      error: () => {
+        this.isTransactionsLoading = false;
+      }
+    });
+  }
+
+  getTransactionTypeBadge(type: string): string {
+    switch (type) {
+      case 'Addition': return 'bg-tertiary-container text-on-tertiary-container';
+      case 'Deduction': return 'bg-error-container text-on-error-container';
+      case 'Delivery': return 'bg-primary-container text-on-primary-container';
+      case 'Adjustment': return 'bg-secondary-container text-on-secondary-container';
+      default: return 'bg-surface-variant text-on-surface-variant';
+    }
+  }
+
+  getTransactionIcon(type: string): string {
+    switch (type) {
+      case 'Addition': return 'add_circle';
+      case 'Deduction': return 'remove_circle';
+      case 'Delivery': return 'local_shipping';
+      case 'Adjustment': return 'tune';
+      default: return 'swap_horiz';
+    }
+  }
+
+  formatQuantityChange(change: number): string {
+    return change > 0 ? `+${change.toFixed(0)}L` : `${change.toFixed(0)}L`;
+  }
+
+  formatDateTime(dateStr: string): string {
+    const d = new Date(dateStr);
+    return d.toLocaleString('en-IN', { 
+      day: 'numeric', 
+      month: 'short', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
 
   getDaysRemaining(fuelType: string): number {
     const s = this.getStock(fuelType);

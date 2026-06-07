@@ -2,11 +2,6 @@ using IFMS.Booking.Application.Commands;
 
 namespace IFMS.Booking.API.Services;
 
-/// <summary>
-/// Background job that runs every 5 minutes to find PENDING bookings
-/// past their 24h expiry and marks them as EXPIRED in the database.
-/// Redis keys auto-expire via TTL, but DB status needs explicit update.
-/// </summary>
 public class TokenExpiryBackgroundService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;

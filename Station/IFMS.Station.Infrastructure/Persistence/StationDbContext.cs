@@ -9,6 +9,7 @@ public class StationDbContext : DbContext
     
     public DbSet<Domain.Entities.Station> Stations => Set<Domain.Entities.Station>();
     public DbSet<DealerAssignment> DealerAssignments => Set<DealerAssignment>();
+    public DbSet<StaffMember> StaffMembers => Set<StaffMember>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -63,6 +64,48 @@ public class StationDbContext : DbContext
             
             entity.HasIndex(da => da.StationId)
                 .IsUnique();
+        });
+
+        // StaffMember configuration
+        modelBuilder.Entity<StaffMember>(entity =>
+        {
+            entity.HasKey(sm => sm.Id);
+            entity.ToTable("StaffMembers");
+
+            entity.Property(sm => sm.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(sm => sm.Role)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(sm => sm.Shift)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(sm => sm.Phone)
+                .IsRequired()
+                .HasMaxLength(20);
+
+            entity.Property(sm => sm.Email)
+                .HasMaxLength(200);
+
+            entity.Property(sm => sm.Status)
+                .IsRequired()
+                .HasMaxLength(20)
+                .HasDefaultValue("Active");
+
+            entity.Property(sm => sm.JoinDate)
+                .IsRequired()
+                .HasMaxLength(20);
+
+            entity.HasIndex(sm => sm.StationId);
+
+            entity.HasOne(sm => sm.Station)
+                .WithMany()
+                .HasForeignKey(sm => sm.StationId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
     

@@ -21,9 +21,9 @@
   <ItemGroup>
     <ProjectReference Include="..\IFMS.Inventory.Application\IFMS.Inventory.Application.csproj" />
     <ProjectReference Include="..\IFMS.Inventory.Infrastructure\IFMS.Inventory.Infrastructure.csproj" />
-    <ProjectReference Include="..\IFMS.Station.Application\IFMS.Station.Application.csproj" />
-    <ProjectReference Include="..\IFMS.Station.Infrastructure\IFMS.Station.Infrastructure.csproj" />
-    <ProjectReference Include="..\IFMS.Messaging\IFMS.Messaging.csproj" />
+    <ProjectReference Include="..\..\Station\IFMS.Station.Application\IFMS.Station.Application.csproj" />
+    <ProjectReference Include="..\..\Station\IFMS.Station.Infrastructure\IFMS.Station.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Shared\IFMS.Messaging\IFMS.Messaging.csproj" />
   </ItemGroup>
 
 </Project>

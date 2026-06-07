@@ -88,6 +88,7 @@ export class AdminComponent implements OnInit {
   showStaffModal = false;
   staffSuccess = '';
   staffError = '';
+  isStaffLoading = false;
 
   // Map
   mapStations: any[] = [];
@@ -403,28 +404,42 @@ export class AdminComponent implements OnInit {
     this.showStaffModal = true;
     this.staffSuccess = '';
     this.staffError = '';
-    // Seed default staff by city if none exists yet, then load
-    this.staffService.seedIfEmpty(station.id, station.city);
-    this.stationStaffMap[station.id] = this.staffService.getStaff(station.id);
+    this.loadStationStaff(station.id);
   }
 
   loadStationStaff(stationId: string) {
-    this.stationStaffMap[stationId] = this.staffService.getStaff(stationId);
+    this.isStaffLoading = true;
+    this.staffService.getStaff(stationId).subscribe({
+      next: (list) => {
+        this.stationStaffMap[stationId] = list;
+        this.isStaffLoading = false;
+      },
+      error: () => {
+        this.staffError = 'Could not load staff list.';
+        this.isStaffLoading = false;
+        setTimeout(() => this.staffError = '', 4000);
+      }
+    });
   }
 
-  saveStationStaff(stationId: string) {
-    this.staffService.saveStaff(stationId, this.stationStaffMap[stationId] ?? []);
-  }
-
-  removeStaffFromStation(stationId: string, staffId: number) {
-    this.staffService.removeStaff(stationId, staffId);
-    this.stationStaffMap[stationId] = this.staffService.getStaff(stationId);
-    this.staffSuccess = 'Staff member removed.';
-    setTimeout(() => this.staffSuccess = '', 3000);
+  removeStaffFromStation(stationId: string, staffId: string) {
+    this.staffService.removeStaff(stationId, staffId).subscribe({
+      next: () => {
+        this.stationStaffMap[stationId] = (this.stationStaffMap[stationId] || []).filter(
+          (s: any) => s.id !== staffId
+        );
+        this.staffSuccess = 'Staff member removed.';
+        setTimeout(() => this.staffSuccess = '', 3000);
+      },
+      error: (err) => {
+        this.staffError = err?.error?.error || 'Failed to remove staff member.';
+        setTimeout(() => this.staffError = '', 4000);
+      }
+    });
   }
 
   getStaffCount(stationId: string): number {
-    return this.staffService.getCount(stationId);
+    return (this.stationStaffMap[stationId] ?? []).length;
   }
 
   getStaffStatusCls(status: string): string {

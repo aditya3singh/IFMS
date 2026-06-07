@@ -46,7 +46,12 @@ builder.Services.AddDbContext<StationDbContext>(options =>
             errorNumbersToAdd: null)));
 
 builder.Services.AddScoped<IFuelStockRepository, FuelStockRepository>();
+builder.Services.AddScoped<IStockTransactionRepository, StockTransactionRepository>();
+builder.Services.AddScoped<ISupplierRepository, SupplierRepository>();
+builder.Services.AddScoped<IStockDeliveryRepository, StockDeliveryRepository>();
 builder.Services.AddScoped<FuelStockCommandHandler>();
+builder.Services.AddScoped<SupplierCommandHandler>();
+builder.Services.AddScoped<StockDeliveryCommandHandler>();
 builder.Services.AddScoped<IDealerAssignmentRepository, DealerAssignmentRepository>();
 
 // HTTP Client for Notification API
@@ -118,6 +123,25 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Auto-apply EF migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var inventoryDb = scope.ServiceProvider.GetRequiredService<InventoryDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    
+    try
+    {
+        logger.LogInformation("Applying pending Inventory database migrations...");
+        inventoryDb.Database.Migrate();
+        logger.LogInformation("Inventory database migrations applied successfully");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Error applying Inventory database migrations");
+        throw;
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {

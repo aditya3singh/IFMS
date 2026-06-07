@@ -34,4 +34,26 @@ export class InventoryService {
       { id, newQuantity }, 
       { headers: this.getHeaders() });
   }
+
+  // Transaction History
+  getStationTransactions(stationId: string, limit: number = 100): Observable<any[]> {
+    return this.http.get<any[]>(
+      `http://localhost:5010/gateway/stock-transactions/station/${encodeURIComponent(stationId)}?limit=${limit}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getRecentTransactions(days: number = 30, limit: number = 1000): Observable<any[]> {
+    return this.http.get<any[]>(
+      `http://localhost:5010/gateway/stock-transactions/recent?days=${days}&limit=${limit}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getFuelStockTransactions(fuelStockId: string): Observable<any[]> {
+    return this.http.get<any[]>(
+      `http://localhost:5010/gateway/stock-transactions/fuel-stock/${encodeURIComponent(fuelStockId)}`,
+      { headers: this.getHeaders() }
+    );
+  }
 }

@@ -49,13 +49,13 @@
         <h2 class="text-xl font-black tracking-tighter text-primary font-headline uppercase">Inventory Management</h2>
       </div>
       <div class="flex items-center gap-4">
+        <button (click)="openTransactionsModal()" class="hidden md:flex items-center gap-2 px-4 py-2 border border-primary/30 bg-primary/5 rounded-lg text-sm font-bold text-primary hover:bg-primary/10 transition-colors">
+          <span class="material-symbols-outlined text-sm">history</span>View History
+        </button>
         <button class="hidden md:flex items-center gap-2 px-4 py-2 border border-outline/20 rounded-lg text-sm font-bold text-primary hover:bg-surface-container-highest transition-colors">
           <span class="material-symbols-outlined text-sm">download</span>Download Report
         </button>
         <app-notification-bell></app-notification-bell>
-        <button class="p-2 hover:bg-surface-container rounded-full transition-colors">
-          <span class="material-symbols-outlined text-on-surface-variant">notifications</span>
-        </button>
       </div>
     </header>
 
@@ -251,6 +251,10 @@
           <button (click)="openForecastModal()" class="px-6 py-3 border border-white/30 text-white font-bold rounded-xl hover:bg-white/10 transition-colors text-sm">
             View Forecast
           </button>
+          <button (click)="openTransactionsModal()" class="px-6 py-3 border border-white/30 text-white font-bold rounded-xl hover:bg-white/10 transition-colors text-sm flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-sm">history</span>
+            Transaction History
+          </button>
         </div>
       </div>
 
@@ -393,6 +397,136 @@
       <button (click)="closeForecastModal()" class="w-full tonal-valley text-white px-6 py-3 rounded-xl font-bold hover:opacity-90 transition-all">
         Close
       </button>
+    </div>
+  </div>
+
+  <!-- ===== TRANSACTION HISTORY MODAL ===== -->
+  <div *ngIf="showTransactionsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col">
+      <!-- Header -->
+      <div class="px-8 py-6 border-b border-outline-variant/10 flex justify-between items-center">
+        <div>
+          <h2 class="text-2xl font-black font-headline text-primary">Transaction History</h2>
+          <p class="text-sm text-on-surface-variant mt-1">Complete audit log of all inventory changes</p>
+        </div>
+        <button (click)="closeTransactionsModal()" class="p-2 hover:bg-surface-container rounded-full transition-colors">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <!-- Filters -->
+      <div class="px-8 py-4 border-b border-outline-variant/10 flex flex-wrap gap-4 items-center">
+        <div>
+          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Transaction Type</label>
+          <select [(ngModel)]="transactionTypeFilter" class="px-3 py-2 bg-surface-container-low rounded-lg ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm font-bold">
+            <option value="All">All Types</option>
+            <option value="Addition">Addition</option>
+            <option value="Deduction">Deduction</option>
+            <option value="Delivery">Delivery</option>
+            <option value="Adjustment">Adjustment</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-on-surface-variant uppercase tracking-widest mb-2">Fuel Type</label>
+          <select [(ngModel)]="transactionFuelFilter" class="px-3 py-2 bg-surface-container-low rounded-lg ring-1 ring-outline-variant/30 focus:ring-2 focus:ring-primary outline-none text-sm font-bold">
+            <option value="All">All Fuels</option>
+            <option value="Petrol">Petrol</option>
+            <option value="Diesel">Diesel</option>
+            <option value="CNG">CNG</option>
+          </select>
+        </div>
+        <div class="ml-auto">
+          <button (click)="loadTransactions()" class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:opacity-90 transition-all">
+            <span class="material-symbols-outlined text-sm">refresh</span>Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Transaction Table -->
+      <div class="flex-1 overflow-y-auto">
+        <div *ngIf="isTransactionsLoading" class="flex items-center justify-center py-12">
+          <div class="w-8 h-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+        </div>
+
+        <table *ngIf="!isTransactionsLoading" class="w-full border-collapse text-left">
+          <thead class="sticky top-0 bg-surface-container-low z-10">
+            <tr class="text-[10px] uppercase font-black tracking-widest text-on-surface-variant">
+              <th class="px-6 py-4">Type</th>
+              <th class="px-6 py-4">Fuel</th>
+              <th class="px-6 py-4">Change</th>
+              <th class="px-6 py-4">Before</th>
+              <th class="px-6 py-4">After</th>
+              <th class="px-6 py-4">Performed By</th>
+              <th class="px-6 py-4">Date & Time</th>
+              <th class="px-6 py-4">Notes</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-outline-variant/5">
+            <tr *ngFor="let t of pagedTransactions" class="hover:bg-surface-container-low/50 transition-colors">
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" [class]="getTransactionTypeBadge(t.transactionType)">
+                    <span class="material-symbols-outlined text-sm">{{ getTransactionIcon(t.transactionType) }}</span>
+                  </div>
+                  <span class="text-xs font-bold">{{ t.transactionType }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <span class="font-bold text-sm">{{ t.fuelType }}</span>
+              </td>
+              <td class="px-6 py-4">
+                <span class="font-bold font-headline text-lg" [class.text-tertiary]="t.quantityChange > 0" [class.text-error]="t.quantityChange < 0">
+                  {{ formatQuantityChange(t.quantityChange) }}
+                </span>
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-sm text-on-surface-variant">{{ t.quantityBefore | number:'1.0-0' }} L</span>
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-sm font-bold">{{ t.quantityAfter | number:'1.0-0' }} L</span>
+              </td>
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center">
+                    <span class="material-symbols-outlined text-xs text-primary">{{ t.performedBy === 'Admin' ? 'admin_panel_settings' : t.performedBy === 'Dealer' ? 'person' : 'settings' }}</span>
+                  </div>
+                  <span class="text-xs font-bold">{{ t.performedBy }}</span>
+                </div>
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-xs text-on-surface-variant">{{ formatDateTime(t.createdAt) }}</span>
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-xs text-on-surface-variant italic">{{ t.notes || '—' }}</span>
+              </td>
+            </tr>
+            <tr *ngIf="filteredTransactions.length === 0 && !isTransactionsLoading">
+              <td colspan="8" class="px-6 py-12 text-center text-on-surface-variant">
+                <div class="flex flex-col items-center gap-3">
+                  <span class="material-symbols-outlined text-outline text-3xl">history</span>
+                  <p class="text-sm">No transactions found</p>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer with Pagination -->
+      <div class="px-8 py-4 border-t border-outline-variant/10">
+        <div class="flex items-center justify-between">
+          <p class="text-sm text-on-surface-variant">
+            Showing {{ filteredTransactions.length > 0 ? ((transactionPage-1) * transactionPageSize + 1) : 0 }} - 
+            {{ Math.min(transactionPage * transactionPageSize, filteredTransactions.length) }} of {{ filteredTransactions.length }} transactions
+          </p>
+          <app-pagination 
+            [totalItems]="filteredTransactions.length" 
+            [pageSize]="transactionPageSize" 
+            [currentPage]="transactionPage" 
+            (pageChange)="transactionPage=$event">
+          </app-pagination>
+        </div>
+      </div>
     </div>
   </div>
 

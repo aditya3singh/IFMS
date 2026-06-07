@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from '../../services/auth.service';
-import { StaffService, StaffMember } from '../../services/staff.service';
+import { StaffService, StaffMember, CreateStaffPayload } from '../../services/staff.service';
 import { PaginationComponent } from '../../shared/pagination.component';
 import { NotificationBellComponent } from '../../shared/notification-bell.component';
 import { environment } from '../../environments/environment';
@@ -17,6 +17,8 @@ import { environment } from '../../environments/environment';
 })
 export class StaffComponent implements OnInit {
   staffList: StaffMember[] = [];
+  isStaffLoading = false;
+
   showAddModal = false;
   showEditModal = false;
   selectedStaff: StaffMember | null = null;
@@ -30,7 +32,7 @@ export class StaffComponent implements OnInit {
   isLoadingStation = true;
   stationLoadError = '';
 
-  newStaff: Omit<StaffMember, 'id'> = {
+  newStaff: CreateStaffPayload = {
     name: '', role: 'Pump Operator', shift: 'Morning (6AM-2PM)',
     phone: '', email: '', status: 'Active',
     joinDate: new Date().toISOString().split('T')[0]
@@ -76,8 +78,6 @@ export class StaffComponent implements OnInit {
           const s = stations[0];
           this.stationId = s.id;
           this.stationName = s.name ?? '';
-          // Seed default staff by city if this station has no data yet
-          this.staffService.seedIfEmpty(s.id, s.city ?? '');
         } else {
           this.stationId = null;
           this.stationLoadError = 'No station assigned to your account yet.';
@@ -88,15 +88,21 @@ export class StaffComponent implements OnInit {
         this.isLoadingStation = false;
         this.stationId = null;
         this.stationLoadError = 'Could not reach station service.';
-        this.reload();
       }
     });
   }
 
   reload() {
-    this.staffList = this.stationId
-      ? this.staffService.getStaff(this.stationId)
-      : [];
+    if (!this.stationId) { this.staffList = []; return; }
+    this.isStaffLoading = true;
+    this.staffService.getStaff(this.stationId).subscribe({
+      next: (list) => { this.staffList = list; this.isStaffLoading = false; },
+      error: () => {
+        this.errorMsg = 'Could not load staff. Please try again.';
+        this.isStaffLoading = false;
+        setTimeout(() => this.errorMsg = '', 4000);
+      }
+    });
   }
 
   get filteredStaff(): StaffMember[] {
@@ -129,11 +135,17 @@ export class StaffComponent implements OnInit {
       this.errorMsg = 'Name and phone are required.';
       return;
     }
-    this.staffService.addStaff(this.stationId, this.newStaff);
-    this.reload();
-    this.showAddModal = false;
-    this.successMsg = `${this.newStaff.name} added successfully.`;
-    setTimeout(() => this.successMsg = '', 3000);
+    this.staffService.addStaff(this.stationId, this.newStaff).subscribe({
+      next: () => {
+        this.showAddModal = false;
+        this.successMsg = `${this.newStaff.name} added successfully.`;
+        setTimeout(() => this.successMsg = '', 3000);
+        this.reload();
+      },
+      error: (err) => {
+        this.errorMsg = err?.error?.error || 'Failed to add staff member.';
+      }
+    });
   }
 
   openEditModal(staff: StaffMember) {
@@ -144,29 +156,44 @@ export class StaffComponent implements OnInit {
 
   saveEdit() {
     if (!this.selectedStaff || !this.stationId) return;
-    this.staffService.updateStaff(this.stationId, this.selectedStaff);
-    this.reload();
-    this.showEditModal = false;
-    this.successMsg = `${this.selectedStaff.name} updated.`;
-    setTimeout(() => this.successMsg = '', 3000);
+    this.staffService.updateStaff(this.stationId, this.selectedStaff).subscribe({
+      next: () => {
+        this.showEditModal = false;
+        this.successMsg = `${this.selectedStaff!.name} updated.`;
+        setTimeout(() => this.successMsg = '', 3000);
+        this.reload();
+      },
+      error: (err) => {
+        this.errorMsg = err?.error?.error || 'Failed to update staff member.';
+      }
+    });
   }
 
-  deleteStaff(id: number) {
+  deleteStaff(id: string) {
     if (!this.stationId) return;
     const member = this.staffList.find(s => s.id === id);
     if (!member) return;
     if (confirm(`Remove ${member.name} from staff?`)) {
-      this.staffService.removeStaff(this.stationId, id);
-      this.reload();
-      this.successMsg = `${member.name} removed.`;
-      setTimeout(() => this.successMsg = '', 3000);
+      this.staffService.removeStaff(this.stationId, id).subscribe({
+        next: () => {
+          this.successMsg = `${member.name} removed.`;
+          setTimeout(() => this.successMsg = '', 3000);
+          this.reload();
+        },
+        error: (err) => {
+          this.errorMsg = err?.error?.error || 'Failed to remove staff member.';
+          setTimeout(() => this.errorMsg = '', 4000);
+        }
+      });
     }
   }
 
-  updateStatus(id: number, status: StaffMember['status']) {
+  updateStatus(id: string, status: StaffMember['status']) {
     if (!this.stationId) return;
-    this.staffService.updateStatus(this.stationId, id, status);
-    this.reload();
+    this.staffService.updateStatus(this.stationId, id, status).subscribe({
+      next: () => this.reload(),
+      error: () => { /* silently ignore status patch failure */ }
+    });
   }
 
   getStatusCls(status: string): string {
